@@ -257,6 +257,26 @@ details.how[open] summary svg{transform:rotate(90deg)}
 .toast.show{opacity:1;transform:translateX(-50%)}
 
 
+
+/* in-app numeric keypad */
+.kp{position:absolute;left:0;right:0;bottom:0;z-index:35;background:#e9eef3;border-radius:18px 18px 0 0;box-shadow:0 -8px 24px rgba(10,42,74,.18);
+  padding:10px 10px calc(10px + env(safe-area-inset-bottom));transform:translateY(calc(100% + 60px));visibility:hidden;pointer-events:none;
+  transition:transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s linear .25s}
+.kp.show{transform:none;visibility:visible;pointer-events:auto;transition:transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.kp-h{display:flex;justify-content:space-between;align-items:flex-end;padding:4px 8px 10px}
+.kp-h small{display:block;font-size:12px;color:var(--muted)}
+.kp-h b{font-size:24px;color:var(--navy-800);font-weight:600;min-height:32px;display:block;letter-spacing:.3px}
+.kp-h b i{font-style:normal;font-size:13px;color:var(--muted);font-weight:400;margin-left:5px}
+.kp-h .kp-done{height:36px;padding:0 16px;border-radius:10px;background:var(--navy-800);color:#fff;font-size:14px;font-weight:600}
+.kp-g{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.kp-g button{height:50px;border-radius:12px;background:#fff;font-size:22px;font-weight:500;color:var(--ink);box-shadow:0 1px 0 rgba(16,38,63,.15);display:grid;place-items:center}
+.kp-g button:active{background:var(--sel)}
+.kp-g button.fn{background:#d5dde6;font-size:16px}
+.kp-g button.fn svg{color:var(--ink)}
+.kp-err{font-size:12px;color:#d13b3b;min-height:0;padding:0 8px 4px}
+.body.kp-pad{padding-bottom:300px}
+input[data-kp].kp-on{caret-color:transparent}
+.field:has(input.kp-on){border-color:var(--cyan);box-shadow:0 0 0 3px rgba(46,196,239,.18)}
 /* step 6 form */
 .form .fh{display:flex;gap:10px;align-items:center;color:var(--navy-800);padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
 .form .fh b{display:block;font-size:16px;color:var(--ink)}.form .fh small{display:block;font-size:12px;color:var(--muted)}
@@ -310,6 +330,16 @@ body.rp-open #report{display:block}
 #paper .rp-stats b{font-size:1.43em;color:var(--ink);line-height:1.25}#paper .rp-stats b small{font-size:.67em;font-weight:500;color:var(--text);margin-left:1mm}
 #paper .incl{display:flex;flex-wrap:wrap;gap:1mm 3.6mm;padding:1.5mm 4mm;background:var(--soft);border-top:.5pt solid var(--line);font-size:.9em}
 #paper .incl b{font-weight:600;color:var(--ink);margin-right:1mm}
+#paper .pkgs.two{display:grid;grid-template-columns:1fr 1fr;gap:3mm;align-items:stretch}
+#paper .pkgs.two .rp-pkg{display:flex;flex-direction:column}
+#paper .pkgs.two .rp-pkg-h{padding:1.6mm 3mm;flex-wrap:wrap;gap:1mm}
+#paper .pkgs.two .rp-pkg-h span{display:block;margin-left:0;font-size:.85em}
+#paper .pkgs.two .rp-stats{grid-template-columns:1fr 1fr}
+#paper .pkgs.two .rp-stats>div{padding:1.4mm 3mm;border-bottom:.5pt solid var(--line)}
+#paper .pkgs.two .rp-stats>div:first-child{grid-column:span 2;border-right:0}
+#paper .pkgs.two .rp-stats b{font-size:1.3em}
+#paper .pkgs.two .incl{flex:1;padding:1.3mm 3mm;font-size:.85em;border-top:0}
+#paper .incl.sz span::before{content:"•";color:var(--ink);font-weight:700;margin-right:1.2mm}
 #paper .incl span::before{content:"✓";color:var(--ink);font-weight:700;margin-right:1.2mm}
 #paper .alt{display:flex;gap:2.5mm;margin-top:1.4mm;font-size:.9em;color:var(--muted)}#paper .alt b{color:var(--text);font-weight:600;white-space:nowrap}
 #paper .usage{display:grid;gap:2.2mm}
@@ -370,6 +400,7 @@ body.rp-open #report{display:block}
   <div class="scrim" id="scrim"></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
   <div class="toast" id="toast"></div>
+  <div class="kp" id="kp" aria-hidden="true"></div>
  </div>
 </div>
 
@@ -1776,7 +1807,7 @@ const PROFILES = {
 };
 /* reference assumptions (approximate, for preliminary estimate only) */
 /* อัตรา TOU แรงดัน 22–33 kV (ตามบิล กฟภ.): On-Peak 4.1839 / Off-Peak 2.6037 บาท/หน่วย, Demand 132.93 บาท/kW, Ft 0.1623 บาท/หน่วย, VAT 7% */
-const RATE = 4.4, PEAK = 4.1839, OFF = 2.6037, FT = 0.1623, VAT = 0.07, DEMAND_RATE = 132.93, SOLAR_KWH_M2 = 6000/350, SOLAR_COST_M2 = Math.round(1600000/350), SOLAR_M2_PER_KW = 350/50, EF = 0.4999;
+const RATE = 4.4, PEAK = 4.1839, OFF = 2.6037, FT = 0.1623, VAT = 0.07, DEMAND_RATE = 132.93, PANEL_M2 = 2.4, PANEL_W = 650, SOLAR_COST_KW = 25000, SOLAR_HOURS = [4,8], EF = 0.4999;
 
 /* ---------- state ---------- */
 const S = { step:1, goals:new Set(['bill']), group:null, type:null, otherText:'', bill:'', day:null, dayTouched:false,
@@ -1903,7 +1934,7 @@ function v4(){
   const p=profile(), d=dayPct(), B=S.billData;
   const manual=`<div class="card">
     <div class="lbl">ค่าไฟเฉลี่ยย้อนหลัง 6 เดือน <em>จำเป็น</em></div>
-    <div class="field" id="billF"><input id="bill" inputmode="numeric" placeholder="กรอกค่าไฟเฉลี่ย" value="${S.bill?fmt(S.bill):''}"><span class="unit">บาท/เดือน</span></div>
+    <div class="field" id="billF"><input id="bill" inputmode="none" data-kp="ค่าไฟเฉลี่ยต่อเดือน" data-unit="บาท/เดือน" data-len="7" autocomplete="off" placeholder="กรอกค่าไฟเฉลี่ย" value="${S.bill?fmt(S.bill):''}"><span class="unit">บาท/เดือน</span></div>
     <div class="errmsg" id="billE">กรุณาอัปโหลดบิล หรือกรอกค่าไฟเฉลี่ยต่อเดือน</div>
     <div class="hint" style="margin-top:6px">ดูได้จากบิลค่าไฟ หรือแอป PEA Smart Plus / MEA Smart Life</div>
   </div>
@@ -1937,10 +1968,10 @@ function v4(){
       ${[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${+S.days===n?'selected':''}>${n} วัน${n===7?' (ทุกวัน)':''}</option>`).join('')}
     </select>
     <div class="lbl" style="margin-top:14px">ชั่วโมงทำงานต่อวัน</div>
-    <div class="field"><input id="hours" inputmode="numeric" placeholder="เช่น 10" value="${S.hours}"><span class="unit">ชม./วัน</span></div>
+    <div class="field"><input id="hours" inputmode="none" data-kp="ชั่วโมงทำงานต่อวัน" data-unit="ชม./วัน" data-len="2" data-limit="24" autocomplete="off" placeholder="เช่น 10" value="${S.hours}"><span class="unit">ชม./วัน</span></div>
     <div class="lbl" style="margin-top:14px">พื้นที่หลังคาว่างโดยประมาณ</div>
-    <div class="field"><input id="roof" inputmode="numeric" placeholder="สำหรับประเมินโซลาร์เซลล์" value="${S.roof}"><span class="unit">ตร.ม.</span></div>
-    <div class="hint" style="margin-top:6px">1 ตร.ม. ผลิตไฟได้ ~17 หน่วย/เดือน (อ้างอิง กฟผ.: 50 kW ใช้พื้นที่ ~350 ตร.ม.)</div>
+    <div class="field"><input id="roof" inputmode="none" data-kp="พื้นที่หลังคาที่ติดตั้งได้" data-unit="ตร.ม." data-len="6" autocomplete="off" placeholder="สำหรับประเมินโซลาร์เซลล์" value="${S.roof}"><span class="unit">ตร.ม.</span></div>
+    <div class="hint" style="margin-top:6px">1 แผง (650 W) ใช้พื้นที่ ~2.4 ตร.ม. · ระบบจะคำนวณขนาดที่พอดีกับการใช้ไฟกลางวัน</div>
    </div>
   </details>`,
   `<button class="cta" id="next" ${S.billLoading?'disabled':''}>ดูผลประเมิน</button>`);
@@ -2018,33 +2049,41 @@ function assess(){
     calc:[lineOff,lineOn,['ค่าไฟของเครื่องจักรรวม','',baht(machineBill)],['ลดได้ 15–30% ของส่วนนี้',`${baht(machineBill)} × 15–30%`,rng(ee[0],ee[1])]],
     note:`EE ช่วยลดไฟของ${loadsTxt} ไม่รวมไฟสำนักงาน ${baht(onBill+offBill-machineBill)}${src==='bill'?' · ค่าไฟแต่ละช่วง = หน่วยจากบิล × ราคา (รวม Ft + VAT) · ไม่รวมค่า Demand และค่าบริการ':''}`});
 
-  /* 2) Solar Rooftop — อ้างอิง EGAT Smart Energy Solutions: 50 kW ใช้พื้นที่ ~350 ตร.ม. ผลิต ~6,000 หน่วย/เดือน ราคาเริ่มต้น ฿1,600,000
-        → ผลิตไฟ 17.14 หน่วย/ตร.ม./เดือน · งบติดตั้ง ~฿4,571/ตร.ม. · 7 ตร.ม./kW
-        มีพื้นที่หลังคา: คำนวณจากพื้นที่จริง · ไม่มี: เสนอพื้นที่ที่ผลิตไฟแทนการใช้ไฟ On-Peak ได้ 40–70% */
-  const uPrice = src==='avg'?RATE:P_ON;                     // ราคาต่อหน่วยที่ประหยัดได้ (ช่วงกลางวัน)
+  /* 2) Solar Rooftop
+        แผง 650 W ใช้พื้นที่ 2.4 ตร.ม. ราคา ฿25,000/kW → ฿16,250/แผง
+        ผลิตไฟ = kW × ชั่วโมงแดด 4–8 ชม./วัน × 30 วัน (แสดงเป็นช่วง)
+        จำนวนแผง: กรอกพื้นที่ → ใช้พื้นที่ที่กรอก แต่ไม่เกินจำนวนที่ไฟกลางวันใช้หมด
+                  ไม่กรอก   → แนะนำจำนวนแผงที่ประหยัดได้สูงสุด (ผลิตพอดีกับไฟกลางวัน คิดที่ 4 ชม.) */
+  const uPrice = src==='avg'?RATE:P_ON;
+  const panelKw = PANEL_W/1000, panelCost = panelKw*SOLAR_COST_KW;
   const roof = S.roof?+S.roof:0;
-  let area, prod, used;
-  if(roof){ const pr=roof*SOLAR_KWH_M2; area=[roof,roof]; prod=[pr,pr]; }
-  else { prod=SOLAR_COVER.map(c=>onK*c); area=prod.map(k=>k/SOLAR_KWH_M2); }
-  used=prod.map(k=>Math.min(k,onK));                      // ใช้เองได้ไม่เกินการใช้ไฟช่วงกลางวัน
-  const excess=prod[1]-used[1];
-  const sol=used.map(k=>k*uPrice);
-  const sKw=area.map(a=>a/SOLAR_M2_PER_KW), cost=area.map(a=>a*SOLAR_COST_M2);
-  const pay=[cost[0]/(sol[0]*12||1),cost[1]/(sol[1]*12||1)];
-  const rr=(a,b,f=fmt,u='')=>Math.round(a)===Math.round(b)?`${f(a)}${u}`:`${f(a)}–${f(b)}${u}`;
+  const panelsArea = roof?Math.floor(roof/PANEL_M2):Infinity;
+  const panelsNeed = Math.ceil(onK/30/SOLAR_HOURS[0]/panelKw);       // ใช้ไฟกลางวันหมดพอดีแม้แดดน้อย (4 ชม.)
+  const panels = Math.max(0,Math.min(panelsArea,panelsNeed));
+  const limitedBy = roof && panelsArea<panelsNeed ? 'roof' : 'use';
+  const sKw = panels*panelKw, cost = panels*panelCost;
+  const prod = SOLAR_HOURS.map(h=>sKw*h*30), used = prod.map(k=>Math.min(k,onK));
+  const sol = used.map(k=>k*uPrice);
+  const pay = sol.map(v=>cost/(v*12||1));
+  const rr=(a,b,f=fmt)=>Math.round(a)===Math.round(b)?f(a):`${f(a)}–${fmt(b)}`;
   recs.push({id:'solar',img:'sun',ic:'sun',en:'Solar Rooftop',th:'โซลาร์เซลล์บนหลังคา',
-    save:sol,kwhSave:used,invest:`~${rr(cost[0],cost[1],baht)} (฿${fmt(SOLAR_COST_M2)}/ตร.ม.) · คืนทุน ~${yr(pay[0],pay[1])} ปี`,
-    reason:roof?`หลังคา ${fmt(roof)} ตร.ม. ติดตั้งได้ ~${sKw[0].toFixed(0)} kW ผลิตไฟ ~${fmt(prod[0])} หน่วย/เดือน`:`ใช้ไฟช่วงกลางวัน (On-Peak) ${pct(d)} ซึ่งตรงกับช่วงที่โซลาร์ผลิตไฟได้`,
-    next:roof?'สำรวจหลังคาและโครงสร้างรับน้ำหนัก':'วัดพื้นที่หลังคาที่ติดตั้งได้จริง',
+    sz:{panels,kw:sKw,area:panels*PANEL_M2,prod,cost,pay,roof,limitedBy,panelsNeed},
+    save:sol,kwhSave:used,invest:`~${baht(cost)} (${fmt(panels)} แผง × ฿${fmt(panelCost)}) · คืนทุน ~${yr(pay[0],pay[1])} ปี`,
+    reason:`${roof?'':'แนะนำ '}ติดตั้ง ${fmt(panels)} แผง (${sKw.toFixed(2)} kW) ผลิตไฟ ~${rr(prod[0],prod[1])} หน่วย/เดือน แทนไฟช่วงกลางวัน`,
+    next:roof?'สำรวจหลังคาและโครงสร้างรับน้ำหนัก':`ตรวจว่าหลังคามีพื้นที่ ~${fmt(panels*PANEL_M2)} ตร.ม. หรือไม่`,
     score:sol[1]/bill*100+(S.goals.has('green')?15:0)+(S.goals.has('bill')?3:0),
     calc:[
-      roof?['พื้นที่หลังคาที่ติดตั้งได้','กรอกโดยผู้ใช้',`${fmt(roof)} ตร.ม.`]
-          :['พื้นที่ที่แนะนำ',`ผลิตแทนไฟ On-Peak 40–70% (${fmt(onK)} หน่วย) ÷ ${SOLAR_KWH_M2.toFixed(2)}`,`${rr(area[0],area[1])} ตร.ม.`],
-      ['ผลิตไฟได้',`${rr(area[0],area[1])} ตร.ม. × ${SOLAR_KWH_M2.toFixed(2)} หน่วย/ตร.ม.`,`${rr(prod[0],prod[1])} หน่วย/เดือน`],
-      ...(excess>1?[['ใช้เองได้ (ไม่เกินการใช้ไฟกลางวัน)',`สูงสุด ${fmt(onK)} หน่วย`,`${rr(used[0],used[1])} หน่วย`]]:[]),
-      ['ลดค่าไฟได้',`${rr(used[0],used[1])} หน่วย × ฿${uPrice.toFixed(2)}${src==='avg'?' (ราคาเฉลี่ย)':' (On-Peak รวม Ft+VAT)'}`,rr(sol[0],sol[1],baht)+'/เดือน'],
+      ...(roof?[['แผงที่หลังคารองรับได้',`${fmt(roof)} ตร.ม. ÷ ${PANEL_M2} ตร.ม./แผง`,`${fmt(panelsArea)} แผง`]]:[]),
+      ['แผงที่ประหยัดได้สูงสุด',`ไฟกลางวัน ${fmt(onK)} หน่วย ÷ 30 วัน ÷ ${SOLAR_HOURS[0]} ชม. ÷ ${panelKw} kW`,`${fmt(panelsNeed)} แผง`],
+      [roof?'ติดตั้ง (ค่าที่น้อยกว่า)':'แนะนำให้ติดตั้ง',`${fmt(panels)} แผง × ${PANEL_W} W · ใช้พื้นที่ ${fmt(panels*PANEL_M2)} ตร.ม.`,`${sKw.toFixed(2)} kW`],
+      ['เงินลงทุน',`${fmt(panels)} แผง × ฿${fmt(panelCost)} (฿${fmt(SOLAR_COST_KW)}/kW)`,baht(cost)],
+      ['ผลิตไฟได้',`${sKw.toFixed(2)} kW × ${SOLAR_HOURS[0]}–${SOLAR_HOURS[1]} ชม. × 30 วัน`,`${rr(prod[0],prod[1])} หน่วย/เดือน`],
+      ...(prod[1]>onK+0.5?[['ใช้เองได้ (ไม่เกินไฟกลางวัน)',`สูงสุด ${fmt(onK)} หน่วย`,`${rr(used[0],used[1])} หน่วย`]]:[]),
+      ['ลดค่าไฟได้',`${rr(used[0],used[1])} หน่วย × ฿${uPrice.toFixed(2)}${src==='avg'?' (ราคาเฉลี่ย)':' (On-Peak รวม Ft+VAT)'}`,rng(sol[0],sol[1])+'/เดือน'],
     ],
-    note:`ขนาดระบบ ~${rr(sKw[0],sKw[1],v=>v.toFixed(0))} kW (7 ตร.ม./kW) · ผลประหยัดยังไม่หักเงินลงทุน${excess>1?` · ผลิตเกินการใช้กลางวัน ~${fmt(excess)} หน่วย ไม่นับเป็นผลประหยัด`:''}${roof?'':' · กรอกพื้นที่หลังคาในขั้นตอนที่ 4 เพื่อคำนวณตามพื้นที่จริง'} · อ้างอิง: EGAT Smart Energy Solutions (50 kW / 350 ตร.ม. / 6,000 หน่วย/เดือน / ฿1.6M)`});
+    note:(limitedBy==='roof'?`ขนาดระบบถูกจำกัดด้วยพื้นที่หลังคา (ถ้ามีพื้นที่ ${fmt(panelsNeed*PANEL_M2)} ตร.ม. จะประหยัดได้สูงสุด)`
+         :roof?`หลังคารองรับได้ ${fmt(panelsArea)} แผง แต่แนะนำ ${fmt(panels)} แผงให้พอดีกับไฟกลางวัน เพราะไฟที่ผลิตเกินจะไม่ได้ใช้`
+         :'ยังไม่ระบุพื้นที่หลังคา จึงแนะนำจำนวนแผงที่ประหยัดได้สูงสุด')+` · ช่วงผลประหยัดคิดจากแดด ${SOLAR_HOURS[0]}–${SOLAR_HOURS[1]} ชม./วัน · ยังไม่หักเงินลงทุน`});
 
   /* 3) Battery as a Service — 2 รูปแบบ (+ ลดค่า Demand เมื่อมีข้อมูลจากบิล)
      A) แบตเตอรี่อย่างเดียว: ชาร์จไฟราคาถูกช่วง Off-Peak (22:00–09:00) → ใช้แทนไฟ On-Peak (09:00–22:00)
@@ -2161,7 +2200,7 @@ function v5(){
      <div class="dt"><div><b>เหตุผล:</b> ${r.reason}</div><div><b>เงินลงทุน:</b> ${r.invest}</div>${r.pkg?pkgHtml():''}${r.modes?modesHtml(r):''}${calcHtml(r)}</div></div>`).join('')}
 
    <div class="row2"><button class="btn2" id="print">${ic('down',18,2)} บันทึกผล PDF</button><button class="btn2" id="restart">${ic('refresh',18,2)} ประเมินใหม่</button></div>
-   <div class="note">ประมาณการเบื้องต้น: ค่าไฟเฉลี่ย ~฿${RATE}/หน่วย · อัตรา TOU 22–33 kV: On-Peak (จ.–ศ. 09:00–22:00 น.) ฿${PEAK} / Off-Peak (จ.–ศ. 22:00–09:00 น. และ ส.–อา./วันหยุดราชการทั้งวัน) ฿${OFF}/หน่วย + Ft ฿${FT} + VAT 7% · Demand ฿${DEMAND_RATE}/kW · โซลาร์ผลิตไฟ ~${SOLAR_KWH_M2.toFixed(2)} หน่วย/ตร.ม./เดือน ค่าติดตั้ง ~฿${fmt(SOLAR_COST_M2)}/ตร.ม. (EGAT Smart Energy Solutions) · ค่าการปล่อย ${EF} kgCO₂/หน่วย · ตัวเลขจริงขึ้นกับการตรวจวัดหน้างาน</div>
+   <div class="note">ประมาณการเบื้องต้น: ค่าไฟเฉลี่ย ~฿${RATE}/หน่วย · อัตรา TOU 22–33 kV: On-Peak (จ.–ศ. 09:00–22:00 น.) ฿${PEAK} / Off-Peak (จ.–ศ. 22:00–09:00 น. และ ส.–อา./วันหยุดราชการทั้งวัน) ฿${OFF}/หน่วย + Ft ฿${FT} + VAT 7% · Demand ฿${DEMAND_RATE}/kW · โซลาร์: แผง 650 W ใช้พื้นที่ 2.4 ตร.ม. ราคา ฿25,000/kW (฿16,250/แผง) ผลิตไฟ 4–8 ชม./วัน · ค่าการปล่อย ${EF} kgCO₂/หน่วย · ตัวเลขจริงขึ้นกับการตรวจวัดหน้างาน</div>
   </div></div>`;
   $('foot').innerHTML = `<button class="cta" id="lead">ขอรับการตรวจวัดจากผู้เชี่ยวชาญ ${ic('arrow',22,2.2)}</button>`;
   document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{const id=b.dataset.rec;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);b.parentElement.classList.toggle('open');});
@@ -2182,7 +2221,7 @@ const FORM={
          ['phone','เบอร์โทรศัพท์','ไม่บังคับ',0,'tel','off'],['email','อีเมล','name@example.com',1,'email','off']]
 };
 function fieldHtml(g,f){ const v=S[g][f[0]]||''; return `<div class="ff"><label for="${g}-${f[0]}">${f[1]}${f[3]?' <i>*</i>':''}</label>
-  <div class="field" id="${g}-${f[0]}-w"><input id="${g}-${f[0]}" data-g="${g}" data-k="${f[0]}" type="${f[4]==='email'?'email':'text'}" ${f[4]==='tel'?'inputmode="tel"':''} autocomplete="${f[5]}" placeholder="${f[2]}" value="${v.replace(/"/g,'&quot;')}"></div>
+  <div class="field" id="${g}-${f[0]}-w"><input id="${g}-${f[0]}" data-g="${g}" data-k="${f[0]}" type="${f[4]==='email'?'email':'text'}" ${f[4]==='tel'?`inputmode="none" data-kp="${f[1]}" data-unit="" data-len="10" data-phone="1"`:''} autocomplete="${f[5]}" placeholder="${f[2]}" value="${v.replace(/"/g,'&quot;')}"></div>
   <div class="errmsg" id="${g}-${f[0]}-e"></div></div>`; }
 function validate(show){
   let ok=true;
@@ -2258,7 +2297,30 @@ function reportHtml(){
   const months=[Math.ceil(EE_PRICE/ee.save[1]),Math.ceil(EE_PRICE/ee.save[0])];
   const addr=S.cust.addr.trim();
   const fromBill=B&&S.billAddr&&addr===S.billAddr;
-  const alts=R.recs.filter(r=>r.id!=='ee').map(r=>r.en+(S.interest.has(r.id)?' (ลูกค้าสนใจ)':''));
+  const sol=R.recs.find(r=>r.id==='solar');
+  const want=['ee','solar'].filter(id=>S.interest.has(id)); if(!want.length) want.push('ee');
+  const chip=id=>S.interest.has(id)?'<em>☑ ลูกค้าสนใจ</em>':'<em class="no">☐ ลูกค้ายังไม่ได้เลือก</em>';
+  const range=(a,b,u)=>Math.round(a)===Math.round(b)?`${fmt(a)}<small>${u}</small>`:`${fmt(a)} – ${fmt(b)}<small>${u}</small>`;
+  const blocks=want.map(id=>{
+    if(id==='ee') return `<div class="rp-pkg">
+      <div class="rp-pkg-h"><div><b>Energy Efficiency</b><span>แพ็กเกจเพิ่มประสิทธิภาพการใช้พลังงาน</span></div>${chip('ee')}</div>
+      <div class="rp-stats">
+        <div><label>ประหยัดค่าไฟได้ประมาณ</label><b>${range(ee.save[0],ee.save[1],'บาท/เดือน')}</b></div>
+        <div><label>เงินลงทุน (แพ็กเกจรวม)</label><b>${fmt(EE_PRICE)}<small>บาท</small></b></div>
+        <div><label>ระยะเวลาคืนทุน</label><b>${months[0]===months[1]?months[0]:months[0]+' – '+months[1]}<small>เดือน</small></b></div>
+      </div>
+      <div class="incl"><b>สิ่งที่ได้รับ</b>${EE_PKG.map(x=>`<span>${x[1]}</span>`).join('')}</div></div>`;
+    const z=sol.sz, py=[Math.min(...z.pay),Math.max(...z.pay)].map(v=>v.toFixed(1));
+    return `<div class="rp-pkg">
+      <div class="rp-pkg-h"><div><b>Solar Rooftop</b><span>โซลาร์เซลล์บนหลังคา</span></div>${chip('solar')}</div>
+      <div class="rp-stats">
+        <div><label>ประหยัดค่าไฟได้ประมาณ</label><b>${range(sol.save[0],sol.save[1],'บาท/เดือน')}</b></div>
+        <div><label>เงินลงทุนโดยประมาณ</label><b>${fmt(z.cost)}<small>บาท</small></b></div>
+        <div><label>ระยะเวลาคืนทุน</label><b>${py[0]===py[1]?py[0]:py[0]+' – '+py[1]}<small>ปี</small></b></div>
+      </div>
+      <div class="incl sz"><b>ขนาดระบบ</b><span>${fmt(z.panels)} แผง × ${PANEL_W} W = ${z.kw.toFixed(2)} kW</span><span>ใช้พื้นที่ ${fmt(z.area)} ตร.ม.${z.roof?` จาก ${fmt(z.roof)} ตร.ม.`:' (ประมาณการ)'}</span><span>ผลิตไฟ ${Math.round(z.prod[0])===Math.round(z.prod[1])?fmt(z.prod[0]):fmt(z.prod[0])+'–'+fmt(z.prod[1])} หน่วย/เดือน</span></div></div>`;
+  });
+  const alts=R.recs.filter(r=>!want.includes(r.id)).map(r=>r.en+(S.interest.has(r.id)?' (ลูกค้าสนใจ)':''));
   const work=[S.days?S.days+' วัน/สัปดาห์':'',S.hours?S.hours+' ชม./วัน':''].filter(Boolean).join(' · ')||'-';
   const cell=(l,v,c='')=>`<div class="${c}"><label>${l}</label><span>${v}</span></div>`;
   const usageFields = B ? [
@@ -2292,17 +2354,9 @@ function reportHtml(){
     </div>
   </section>
 
-  <section><h2>2. แพ็กเกจที่แนะนำ</h2>
-    <div class="rp-pkg">
-      <div class="rp-pkg-h"><div><b>Energy Efficiency</b><span>แพ็กเกจเพิ่มประสิทธิภาพการใช้พลังงาน</span></div>${S.interest.has('ee')?'<em>☑ ลูกค้าสนใจ</em>':'<em class="no">☐ ลูกค้ายังไม่ได้เลือก</em>'}</div>
-      <div class="rp-stats">
-        <div><label>ประหยัดค่าไฟได้ประมาณ</label><b>${fmt(ee.save[0])} – ${fmt(ee.save[1])}<small>บาท/เดือน</small></b></div>
-        <div><label>เงินลงทุน (แพ็กเกจรวม)</label><b>${fmt(EE_PRICE)}<small>บาท</small></b></div>
-        <div><label>ระยะเวลาคืนทุน</label><b>${months[0]===months[1]?months[0]:months[0]+' – '+months[1]}<small>เดือน</small></b></div>
-      </div>
-      <div class="incl"><b>สิ่งที่ได้รับ</b>${EE_PKG.map(x=>`<span>${x[1]}</span>`).join('')}</div>
-    </div>
-    <div class="alt"><b>ทางเลือกเพิ่มเติม</b><span>${alts.join(' และ ')} — ยังไม่มีข้อมูลโดยละเอียด ต้องสำรวจหน้างานก่อนประเมิน</span></div>
+  <section><h2>2. ${blocks.length>1?'แพ็กเกจที่ลูกค้าสนใจ':'แพ็กเกจที่แนะนำ'}</h2>
+    <div class="pkgs ${blocks.length>1?'two':''}">${blocks.join('')}</div>
+    ${alts.length?`<div class="alt"><b>ทางเลือกเพิ่มเติม</b><span>${alts.join(' และ ')} — ยังไม่มีข้อมูลโดยละเอียด ต้องสำรวจหน้างานก่อนประเมิน</span></div>`:''}
   </section>
 
   <section><h2>3. ข้อมูลการใช้ไฟฟ้า <small>${B?`จากบิลค่าไฟฟ้า ${B.months.length} เดือน`:'ลูกค้ากรอกข้อมูลเอง (ไม่ได้แนบบิล)'}</small></h2>
@@ -2345,6 +2399,41 @@ window.addEventListener('resize',fitPaper);
 
 function closeSheet(){ $('scrim').classList.remove('show'); $('sheet').classList.remove('show'); }
 $('scrim').onclick=closeSheet;
+
+
+/* ---------- in-app numeric keypad (แทนแป้นพิมพ์ของเครื่อง) ---------- */
+let KP=null;
+function kpRender(){
+  const i=KP.input, raw=i.value.replace(/\D/g,''), d=i.dataset;
+  const shown=raw?(d.phone?raw:fmt(+raw)):'0';
+  $('kp').innerHTML=`<div class="kp-h"><div><small>${d.kp}</small><b>${shown}<i>${d.unit||''}</i></b></div><button class="kp-done" data-k="done">เสร็จ</button></div>
+    <div class="kp-err" id="kpErr"></div>
+    <div class="kp-g">${['1','2','3','4','5','6','7','8','9',d.phone?'':'000','0','del'].map(k=>k===''?'<span></span>':k==='del'?`<button class="fn" data-k="del" aria-label="ลบ">${ic('chev',22,2.2).replace('m9 6 6 6-6 6','m15 6-6 6 6 6')}</button>`:`<button class="${k==='000'?'fn':''}" data-k="${k}">${k}</button>`).join('')}</div>`;
+}
+function kpOpen(input){
+  if(KP&&KP.input===input) return;
+  if(KP) KP.input.classList.remove('kp-on');
+  KP={input}; input.classList.add('kp-on'); kpRender();
+  $('kp').classList.add('show'); $('kp').setAttribute('aria-hidden','false'); $('body').classList.add('kp-pad'); $('foot').style.visibility='hidden';
+  setTimeout(()=>input.closest('.field').scrollIntoView({block:'center',behavior:'smooth'}),60);
+}
+function kpClose(){ if(!KP) return; KP.input.classList.remove('kp-on'); KP.input.blur(); KP=null;
+  $('kp').classList.remove('show'); $('kp').setAttribute('aria-hidden','true'); $('body').classList.remove('kp-pad'); $('foot').style.visibility=''; setTimeout(()=>{ if(!KP) $('kp').innerHTML=''; },300); }
+$('kp').addEventListener('pointerdown',e=>e.preventDefault());   // ไม่ให้ช่องกรอกเสีย focus
+$('kp').addEventListener('click',e=>{
+  e.stopPropagation();
+  const b=e.target.closest('[data-k]'); if(!b||!KP) return; const k=b.dataset.k, i=KP.input, d=i.dataset;
+  if(k==='done') return kpClose();
+  let raw=i.value.replace(/\D/g,'');
+  if(k==='del') raw=raw.slice(0,-1);
+  else { const next=(raw==='0'&&!d.phone?'':raw)+k; if(next.length>+(d.len||9)){ $('kpErr').textContent='ตัวเลขยาวเกินไป'; return; }
+         if(d.limit&&+next>+d.limit){ $('kpErr').textContent=`สูงสุด ${d.limit} ${d.unit}`; return; } raw=next; }
+  i.value=raw; i.dispatchEvent(new Event('input',{bubbles:true})); kpRender();
+});
+const KP_TOUCH=matchMedia('(pointer: coarse)').matches;   // แสดงแป้นตัวเลขเฉพาะจอสัมผัส · คอมพิวเตอร์พิมพ์ด้วยคีย์บอร์ดตามปกติ
+document.addEventListener('focusin',e=>{ const t=e.target; if(t.matches&&t.matches('input[data-kp]')){ if(KP_TOUCH) kpOpen(t); else t.setAttribute('inputmode','numeric'); } else if(KP&&!$('kp').contains(t)) kpClose(); });
+document.addEventListener('click',e=>{ if(KP&&!e.target.closest('#kp')&&!e.target.closest('input[data-kp]')) kpClose(); });
+const _go=go; go=function(n){ kpClose(); _go(n); };
 
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200);}
 $('back').onclick=()=>{ if(S.step>1) go(S.step===5?4:S.step-1); };
