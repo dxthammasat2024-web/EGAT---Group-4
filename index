@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ประเมินพลังงาน SME</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-900:#0a2a4a; --navy-800:#0f3d68; --navy-700:#16527f; --navy-600:#1d6a9e;
+  --cyan:#2ec4ef; --cyan-soft:#e3f5fd; --sel:#d8eefc; --sel-border:#8fd0f3;
+  --ink:#10263f; --muted:#5b6f85; --line:#dbe6f0; --card:#ffffff; --bg:#f2f7fb;
+  --ok:#1aa96b; --warn:#e8962b;
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Prompt","Noto Sans Thai","Sukhumvit Set",system-ui,sans-serif;color:var(--ink);
+  background:radial-gradient(1200px 600px at 50% -10%,#dceaf6,#eef4f9 60%,#e6eef6);display:flex;justify-content:center;align-items:center;min-height:100vh}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select{font:inherit;color:inherit}
+
+/* phone frame (desktop) */
+.device{width:390px;height:844px;border-radius:54px;padding:12px;background:#1b1f24;
+  box-shadow:0 0 0 2px #3a4048,0 30px 80px rgba(10,42,74,.35);position:relative}
+.device::before{content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);width:118px;height:34px;border-radius:20px;background:#000;z-index:20}
+.screen{width:100%;height:100%;border-radius:42px;overflow:hidden;position:relative;background:var(--bg);display:flex;flex-direction:column}
+@media (max-width:500px){
+  body{display:block;background:var(--bg)}
+  .device{width:100%;height:100dvh;border-radius:0;padding:0;box-shadow:none;background:none}
+  .device::before{display:none}
+  .screen{border-radius:0}
+  .top{padding-top:calc(env(safe-area-inset-top) + 18px)!important}
+}
+
+/* header */
+.top{background:linear-gradient(180deg,var(--navy-900) 0%,var(--navy-800) 55%,var(--navy-700) 100%);color:#fff;padding:62px 22px 0;position:relative;flex-shrink:0}
+.bar{display:flex;align-items:center;justify-content:center;position:relative;height:30px}
+.bar h1{font-size:18px;font-weight:600;letter-spacing:.2px}
+.back{position:absolute;left:-6px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;color:#fff}
+.back:hover{background:rgba(255,255,255,.1)}
+.back[hidden]{display:none}
+.steptxt{font-size:13.5px;opacity:.92;margin-top:12px}
+.prog{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+.prog i{height:7px;border-radius:6px;background:rgba(255,255,255,.28);transition:background .35s}
+.prog i.on{background:var(--cyan)}
+.title{font-size:27px;line-height:1.25;font-weight:700;margin-top:16px}
+.sub{font-size:13.5px;opacity:.88;margin-top:4px;padding-bottom:14px}
+
+/* body */
+.body{flex:1;overflow-y:auto;overflow-x:hidden;background:linear-gradient(180deg,var(--navy-700) 0,var(--navy-700) 120px,var(--bg) 120px);scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.hero{margin:0 14px;height:150px;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.hero svg{width:100%;height:100%;display:block}
+.hero .tag{position:absolute;left:10px;bottom:10px;background:rgba(10,42,74,.85);color:#fff;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.3)}
+.hero .tag.btn{cursor:pointer}
+.panel{background:var(--bg);margin-top:-14px;border-radius:20px 20px 0 0;padding:16px 14px 18px;position:relative;z-index:1;min-height:calc(100% - 136px)}
+.view{animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.view.backward{animation:inb .35s ease}
+@keyframes inb{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+
+/* options */
+.opt{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid transparent;border-radius:14px;padding:13px 14px;margin-bottom:9px;text-align:left;box-shadow:0 1px 3px rgba(16,38,63,.06);transition:.15s}
+.opt:hover{border-color:var(--line)}
+.opt .ic{width:30px;height:30px;color:var(--navy-800);flex-shrink:0;display:grid;place-items:center}
+.opt .lb{flex:1;font-size:15.5px;font-weight:500}
+.opt .lb small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.radio{width:22px;height:22px;border-radius:50%;border:2px solid #9fb0c2;flex-shrink:0;display:grid;place-items:center;transition:.15s}
+.opt.sel{background:var(--sel);border-color:var(--sel-border)}
+.opt.sel .radio{background:var(--navy-700);border-color:var(--navy-700)}
+.opt.sel .radio::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tile{position:relative;background:var(--card);border:1.5px solid transparent;border-radius:14px;padding:12px 24px 12px 10px;display:flex;align-items:center;gap:9px;min-height:62px;text-align:left;box-shadow:0 1px 3px rgba(16,38,63,.06);transition:.15s}
+.tile .ic{width:28px;height:28px;color:var(--navy-800);flex-shrink:0}
+.tile span{font-size:13.5px;font-weight:500;line-height:1.25}
+.tile.sel{background:var(--sel);border-color:var(--sel-border)}
+.tile .chk{position:absolute;right:7px;top:7px;width:18px;height:18px;border-radius:50%;background:var(--navy-700);display:none;place-items:center}
+.tile .chk::after{content:"";width:7px;height:4px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.tile.sel .chk{display:grid}
+.pill{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,var(--navy-800),var(--navy-700));color:#fff;border-radius:999px;padding:7px 16px;font-size:14px;font-weight:500;margin:-30px auto 12px;position:relative;z-index:2;border:1.5px solid rgba(255,255,255,.7);box-shadow:0 4px 10px rgba(10,42,74,.25)}
+.center{text-align:center}
+.other-in{display:none;margin:-2px 0 10px}
+.other-in.show{display:block}
+
+/* form */
+.card{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 1px 3px rgba(16,38,63,.06);margin-bottom:12px}
+.lbl{font-size:15px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.lbl em{font-style:normal;font-size:12px;color:var(--muted);font-weight:400}
+.field{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;height:48px;background:#fff;transition:.15s}
+.field:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(46,196,239,.18)}
+.field input{flex:1;border:0;outline:0;height:100%;font-size:16px;min-width:0;background:none}
+.field .unit{color:var(--muted);font-size:14px}
+.field.err{border-color:#e05252}
+.errmsg{color:#d13b3b;font-size:12.5px;margin-top:5px;display:none}
+.errmsg.show{display:block}
+select.field{width:100%;appearance:none;font-size:16px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2310263f' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;outline:0}
+.dn{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.dnbox{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.dnbox svg{width:30px;height:30px;color:var(--navy-800)}
+.tou-t{font-size:11.5px;color:var(--muted);line-height:1.45;padding:0 4px}.tou-t b{color:var(--navy-800);font-weight:600}
+.dnbox small{display:block;font-size:12.5px;color:var(--muted)}
+.dnbox b{font-size:20px;font-weight:600}
+input[type=range]{width:100%;margin:12px 0 2px;accent-color:var(--navy-700);height:24px}
+.hint{font-size:12px;color:var(--muted)}
+.info{display:flex;gap:10px;align-items:center;background:var(--cyan-soft);border:1px solid #bfe6f8;border-radius:12px;padding:10px 12px;font-size:13.5px;color:var(--navy-800)}
+.info svg{flex-shrink:0}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13.5px;background:#fff}
+.chip.sel{background:var(--sel);border-color:var(--sel-border);font-weight:500}
+details.more summary{list-style:none;cursor:pointer;font-size:14px;color:var(--navy-700);font-weight:500;padding:4px 2px 10px;display:flex;align-items:center;gap:6px}
+details.more summary::-webkit-details-marker{display:none}
+details.more[open] summary .car{transform:rotate(90deg)}
+.car{transition:.2s;display:inline-block}
+
+/* footer CTA */
+.foot{padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(242,247,251,0),var(--bg) 30%);flex-shrink:0}
+.cta{width:100%;height:54px;border-radius:14px;background:linear-gradient(180deg,var(--navy-800),var(--navy-900));color:#fff;font-size:18px;font-weight:600;display:flex;justify-content:center;align-items:center;gap:10px;box-shadow:0 6px 16px rgba(10,42,74,.28);transition:.15s}
+.cta:disabled{background:#a9b8c7;box-shadow:none;cursor:not-allowed}
+.cta:not(:disabled):active{transform:scale(.98)}
+.ghost{width:100%;height:46px;border-radius:999px;border:1.5px solid var(--sel-border);background:var(--cyan-soft);color:var(--navy-800);font-weight:500;margin-top:10px}
+.partner{text-align:center;font-size:11px;color:var(--muted);margin-top:8px}
+
+/* result */
+.rec-top{background:#fff;border-radius:18px;padding:12px;box-shadow:0 4px 14px rgba(16,38,63,.1);margin-top:2px}
+.rec-head{display:flex;gap:12px}
+.rec-img{width:118px;height:108px;border-radius:12px;overflow:hidden;flex-shrink:0}
+.rec-img svg{width:100%;height:100%}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--cyan-soft);color:var(--navy-800);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600}
+.rec-title{font-size:21px;font-weight:700;line-height:1.25;margin-top:6px;color:var(--navy-900)}
+.pkg{margin-top:12px;border-radius:14px;overflow:hidden;border:1px solid #cfe6f6;background:linear-gradient(180deg,#f2f9fe,#fff)}
+.pkg-h{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 14px;background:linear-gradient(135deg,var(--navy-800),var(--navy-600));color:#fff}
+.pkg-k{font-size:12px;opacity:.85}
+.pkg-p{font-size:24px;font-weight:700;line-height:1.15;margin-top:2px}
+.pkg-p small{display:block;font-size:11.5px;font-weight:400;opacity:.8}
+.pkg-tag{background:var(--cyan);color:var(--navy-900);font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pkg-l{font-size:12.5px;font-weight:600;color:var(--navy-800);padding:10px 14px 4px}
+.pkg-g{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:4px 10px 12px}
+.pkg-g li{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:8px}
+.pkg-g li.wide{grid-column:1/-1;background:var(--cyan-soft);border-color:#bfe6f8}
+.pkg-g b{display:block;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.25}
+.pkg-g small{display:block;font-size:11px;color:var(--muted);line-height:1.3}
+.pkg-i{width:32px;height:32px;border-radius:9px;background:var(--sel);color:var(--navy-800);display:grid;place-items:center;flex-shrink:0}
+.pkg-g li.wide .pkg-i{background:var(--navy-700);color:#fff}
+.rec .dt .pkg{margin:8px 0}
+.seg-t{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#e8f0f7;border-radius:12px;padding:4px;margin:10px 0 8px}
+.seg-t button{height:36px;border-radius:9px;font-size:12.5px;font-weight:500;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:5px}
+.seg-t button.on{background:#fff;color:var(--navy-800);font-weight:600;box-shadow:0 1px 4px rgba(16,38,63,.12)}
+.mode-d{font-size:12.5px;color:var(--ink);line-height:1.5}
+.tl{margin:10px 0 4px;padding:10px 10px 4px;background:#f7fafd;border:1px solid #e1ecf5;border-radius:12px}
+.tl-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tl-k{width:54px;font-size:11px;color:var(--muted);flex-shrink:0}
+.tl-bar{position:relative;flex:1;height:24px;background:#e6edf3;border-radius:6px;overflow:hidden}
+.seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.seg em{font-style:normal;font-size:10.5px;font-weight:600;white-space:nowrap;padding:0 4px}
+.seg.off{background:#cfdbe6}.seg.peak{background:#ffd27a;color:#7a4b00}
+.seg.chg{background:#1f6fb2;color:#fff}.seg.sol{background:#2fbf7f;color:#fff}.seg.dis{background:#ff9f2e;color:#fff}
+.tl-ax{position:relative;height:16px;margin-left:62px}
+.tl-ax span{position:absolute;transform:translateX(-50%);font-size:10px;color:var(--muted)}
+.units{margin-top:10px;border-top:1px solid var(--line);padding-top:8px;font-size:12.5px}
+.u-row{display:grid;grid-template-columns:62px 1fr auto;gap:6px;padding:3px 0;color:var(--muted)}
+.u-row b{color:var(--ink);font-weight:600;text-align:right}
+.u-row.tot{border-top:1px dashed var(--line);margin-top:3px;padding-top:6px}.u-row.tot b{color:var(--navy-800)}
+.upl{border:1.5px dashed #9fd2f1;background:linear-gradient(180deg,#f1f9fe,#fff)}
+.drop{display:flex;gap:12px;align-items:center;cursor:pointer;color:var(--navy-800)}
+.drop>svg{flex-shrink:0;width:44px;height:44px;padding:9px;border-radius:12px;background:var(--navy-700);color:#fff;transform:rotate(180deg)}
+.drop b{display:block;font-size:15px;color:var(--ink)}.drop small{display:block;font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+.linkbtn{font-size:13px;color:var(--navy-700);font-weight:600;text-decoration:underline;margin-top:10px;padding:2px 0}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:2px 0 12px}.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.upl.busy{display:flex;gap:12px;align-items:center;border-style:solid}
+.upl.busy b{display:block;font-size:15px}.upl.busy small{font-size:12px;color:var(--muted)}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid #d5e8f5;border-top-color:var(--navy-700);animation:sp 0.8s linear infinite;flex-shrink:0}
+@keyframes sp{to{transform:rotate(360deg)}}
+.okc{color:var(--ok)!important;font-weight:600!important;display:inline-flex;align-items:center;gap:3px}
+.bt{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.bt th{font-weight:500;color:var(--muted);text-align:right;padding:4px 3px;border-bottom:1px solid var(--line);font-size:11px}
+.bt td{text-align:right;padding:5px 3px;border-bottom:1px solid #eef3f7}
+.bt th:first-child,.bt td:first-child{text-align:left}
+.bt tfoot td{font-weight:700;color:var(--navy-800);border-bottom:0;border-top:1.5px solid var(--line)}
+.bsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
+.bsum div{background:var(--cyan-soft);border-radius:10px;padding:7px 8px}
+.bsum small{display:block;font-size:10.5px;color:var(--muted)}.bsum b{font-size:13px;color:var(--navy-800)}
+.al-row{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px}
+.al-h{display:flex;gap:9px;align-items:center;color:var(--navy-800)}.al-h b{display:block;font-size:14px;color:var(--ink)}.al-h small{display:block;font-size:12px;color:var(--muted)}
+.al-q{font-size:12px;color:var(--muted);margin:8px 0 5px}
+.al-seg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:#eef3f7;border-radius:10px;padding:3px}
+.al-seg button{height:32px;border-radius:8px;font-size:13px;font-weight:500;color:var(--muted)}
+.al-seg button.sel{background:var(--navy-700);color:#fff;font-weight:600}
+.al-sum{background:var(--cyan-soft);border:1px solid #bfe6f8;border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px}
+.al-sum span{font-size:13px;color:var(--navy-800);font-weight:500}.al-sum b{font-size:18px;color:var(--navy-800)}.al-sum small{grid-column:1/-1;font-size:11.5px;color:var(--muted)}
+.lq-bar{display:flex;height:12px;border-radius:7px;overflow:hidden;gap:2px}
+.lq-bar i{background:#dde6ee;transition:.25s}.lq-bar i.hl{background:linear-gradient(90deg,var(--navy-700),var(--cyan))}
+.lq-cap{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px}.lq-cap b{color:var(--navy-800);font-size:15px}
+.lq-pct{display:inline-block;background:var(--navy-700);color:#fff;border-radius:999px;padding:0 8px;font-size:13px;margin:0 2px}
+.tile.sm{min-height:54px;padding:9px 22px 9px 9px}.tile.sm span{font-size:12.5px}.tile.sm .ic{width:24px;height:24px}
+.rec-th{font-size:13px;color:var(--muted);margin-top:2px}
+.rec .nm .th{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+.rec .dt>div{margin-bottom:3px}.rec .dt b{color:var(--ink);font-weight:600}
+details.how summary{list-style:none;cursor:pointer;font-size:13px;color:var(--navy-700);font-weight:600;margin-top:10px;display:flex;align-items:center;gap:4px}
+details.how summary::-webkit-details-marker{display:none}
+details.how[open] summary svg{transform:rotate(90deg)}
+.calc{background:#f3f8fc;border:1px solid #e1ecf5;border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.45;color:var(--ink);margin-top:8px}
+.calc .eq{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:5px 0}
+.calc .eq span small{display:block;color:var(--muted);font-size:11.5px}
+.calc .eq b{white-space:nowrap;font-weight:600}
+.calc .eq.res{border-top:1px dashed #c9d8e6;margin-top:2px;padding-top:7px}
+.calc .eq.res b{color:var(--ok)}
+.cnote{font-size:11.5px;color:var(--muted);margin-top:4px}
+.split{display:flex;height:12px;border-radius:7px;overflow:hidden;background:#e6edf3}
+.split i:nth-child(1){background:#ffbf3c}.split i:nth-child(2){background:var(--navy-700)}.split i.dem{background:#9b7be0}.dot.dem{background:#9b7be0}
+.split-l{display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.split-l span{display:flex;flex-direction:column}.split-l span:last-child{text-align:right;align-items:flex-end}
+.split-l b{color:var(--ink);font-size:15px;font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}.dot.day{background:#ffbf3c}.dot.night{background:var(--navy-700)}
+
+.kv{display:grid;grid-template-columns:86px 1fr;gap:6px 8px;font-size:13.5px;border-top:1px solid var(--line);margin-top:12px;padding-top:10px}
+.kv dt{color:var(--muted)}
+.kv dd{font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.stat{background:#fff;border-radius:14px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(16,38,63,.06)}
+.stat b{display:block;font-size:17px;color:var(--navy-800);font-weight:700;line-height:1.2}
+.stat small{font-size:11.5px;color:var(--muted);line-height:1.2;display:block;margin-top:3px}
+.stat.hl{background:linear-gradient(180deg,#e9f9f1,#fff);}
+.stat.hl b{color:var(--ok)}
+.sec{font-size:15px;font-weight:600;margin:16px 2px 8px;display:flex;justify-content:space-between;align-items:center}
+.sec em{font-style:normal;font-size:12px;color:var(--muted);font-weight:400}
+.rec{background:#fff;border-radius:14px;margin-bottom:9px;box-shadow:0 1px 3px rgba(16,38,63,.06);overflow:hidden}
+.rec>button{width:100%;display:flex;align-items:center;gap:12px;padding:13px 14px;text-align:left}
+.rec .ic{width:34px;height:34px;color:var(--navy-800);flex-shrink:0}
+.rec .nm{flex:1;font-size:16px;font-weight:600}
+.rec .nm small{display:block;font-size:12px;color:var(--ok);font-weight:500}
+.rec .dt{display:none;padding:0 14px 14px 14px;font-size:13.5px;color:var(--muted);line-height:1.55}
+.rec.open .dt{display:block}
+.rec.open .car{transform:rotate(90deg)}
+.lvl{display:flex;gap:3px;margin-top:4px}
+.lvl i{width:16px;height:4px;border-radius:3px;background:#dbe6f0}
+.lvl i.on{background:var(--cyan)}
+.note{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:12px;padding:10px 12px;background:#fff;border-radius:12px;border:1px dashed var(--line)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.btn2{height:44px;border-radius:12px;background:#fff;border:1.5px solid var(--line);font-size:14px;font-weight:500;color:var(--navy-800);display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(6,22,40,.45);opacity:0;pointer-events:none;transition:.25s;z-index:30}
+.scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(105%);transition:.3s cubic-bezier(.2,.8,.2,1);z-index:31;max-height:88%;overflow-y:auto}
+.sheet.show{transform:none}
+.grab{width:40px;height:5px;border-radius:4px;background:#d3dce6;margin:0 auto 12px}
+.sheet h3{font-size:19px;margin-bottom:4px}
+.sheet p{font-size:13px;color:var(--muted);margin-bottom:12px}
+.sheet .field{margin-bottom:10px}
+.consent{display:flex;gap:10px;font-size:12.5px;color:var(--muted);align-items:flex-start;margin:6px 0 14px}
+.consent input{width:18px;height:18px;margin-top:2px;accent-color:var(--navy-700);flex-shrink:0}
+.done{text-align:center;padding:16px 0 6px}
+.done .ok{width:64px;height:64px;border-radius:50%;background:#e6f7ef;display:grid;place-items:center;margin:0 auto 12px;color:var(--ok)}
+.toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--navy-900);color:#fff;font-size:13px;padding:9px 16px;border-radius:999px;opacity:0;transition:.25s;z-index:40;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+
+/* step 6 form */
+.form .fh{display:flex;gap:10px;align-items:center;color:var(--navy-800);padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.form .fh b{display:block;font-size:16px;color:var(--ink)}.form .fh small{display:block;font-size:12px;color:var(--muted)}
+.ff{margin-bottom:11px}.ff>label{display:block;font-size:13.5px;font-weight:500;margin-bottom:5px}.frombill{font-size:11px;color:var(--ok);font-weight:600;margin-left:4px}.ff>label i{color:#d13b3b;font-style:normal}
+.field.ta{height:auto;padding:10px 12px;resize:vertical;font-size:15px;line-height:1.5;outline:0;width:100%}
+select.field.err{border-color:#e05252}
+.opt.sm{padding:10px 12px;margin-bottom:7px}.opt.sm .lb{font-size:14.5px}
+/* report overlay */
+#report{display:none;position:fixed;inset:0;z-index:100;background:#525a63;overflow:auto;padding:0 12px 30px}
+body.rp-open #report{display:block}
+.rp-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 -12px 16px;padding:10px 12px;background:#1d2329;color:#fff;font-size:14px}
+.rp-bar button{display:flex;align-items:center;gap:6px;color:#fff;font-size:14px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.1)}
+.rp-bar button:first-child svg{transform:rotate(180deg)}.rp-bar .pri{background:var(--cyan);color:var(--navy-900);font-weight:600}
+.rp-bar span{opacity:.7;font-size:13px}
+@font-face{font-family:"RptThai";src:local("TH Sarabun New"),local("THSarabunNew");size-adjust:140%;font-weight:400}
+@font-face{font-family:"RptThai";src:local("TH Sarabun New Bold"),local("THSarabunNew-Bold");size-adjust:140%;font-weight:700}
+#paper{--ink:#123a63;--text:#1a1f24;--muted:#66717c;--line:#c9d2db;--soft:#f3f6f9;--fs:10.5pt;
+  width:210mm;height:297mm;margin:0 auto;background:#fff;padding:12mm 16mm 9mm 20mm;display:flex;flex-direction:column;overflow:hidden;
+  font-family:"RptThai","Sarabun","Loma",sans-serif;font-size:var(--fs);line-height:1.36;color:var(--text);box-shadow:0 8px 30px rgba(0,0,0,.35);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+#paper>*{flex-shrink:0}
+#paper b{font-weight:700}
+#paper .hd{display:flex;justify-content:space-between;align-items:center}
+#paper .org{display:flex;align-items:center;gap:3mm}
+#paper .mark{width:10mm;height:10mm;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+#paper .org b{display:block;font-size:1.1em;color:var(--ink);line-height:1.3}#paper .org span{font-size:.9em;color:var(--muted)}
+#paper .ref{display:flex;align-items:center;gap:3mm;text-align:right;font-size:.86em;color:var(--muted);line-height:1.45}
+#paper .ref b{display:block;font-size:1.17em;color:var(--text)}#paper .ref svg{width:15mm;height:15mm;display:block}
+#paper .rule{border:0;border-top:1.4pt solid var(--ink);margin:2.5mm 0 0}#paper .rule2{border:0;border-top:.5pt solid var(--ink);margin:.7mm 0 0}
+#paper .rp-title{text-align:center;margin:3.5mm 0 3mm}
+#paper .rp-title h1{font-size:1.57em;color:var(--ink);line-height:1.3}#paper .rp-title p{font-size:1.05em;color:var(--muted);margin-top:.5mm}
+#paper section{margin-bottom:3mm}
+#paper h2{display:flex;align-items:baseline;gap:2.5mm;font-size:1.1em;color:var(--ink);margin-bottom:1.8mm}
+#paper h2::after{content:"";flex:1;border-bottom:.5pt solid var(--line);transform:translateY(-1mm)}
+#paper h2 small{font-size:.8em;font-weight:400;color:var(--muted)}
+#paper .fg{display:grid;gap:.5pt;background:var(--line);border:.5pt solid var(--line);border-radius:1.6mm;overflow:hidden}
+#paper .fg>div{background:#fff;padding:1mm 2.8mm 1.1mm;min-width:0}
+#paper .fg label{display:block;font-size:.81em;color:var(--muted);line-height:1.3}
+#paper .fg span{display:block;font-weight:500;line-height:1.35;overflow-wrap:anywhere}
+#paper .fg label i{font-style:normal}
+#paper .c4{grid-template-columns:repeat(4,1fr)}#paper .c5{grid-template-columns:1.1fr .9fr .9fr .8fr 1.1fr}
+#paper .s2{grid-column:span 2}#paper .s3{grid-column:span 3}#paper .s4{grid-column:span 4}
+#paper .rp-pkg{border:1pt solid var(--ink);border-radius:2mm;overflow:hidden}
+#paper .rp-pkg-h{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;padding:2mm 4mm}
+#paper .rp-pkg-h b{font-size:1.24em}#paper .rp-pkg-h span{font-size:.95em;opacity:.85;margin-left:2mm}
+#paper .rp-pkg-h em{font-style:normal;font-size:.9em;background:#fff;color:var(--ink);font-weight:600;border-radius:3mm;padding:.3mm 3mm}
+#paper .rp-pkg-h em.no{background:transparent;color:#fff;border:.6pt solid rgba(255,255,255,.7);font-weight:500}
+#paper .rp-stats{display:grid;grid-template-columns:1.4fr 1fr 1fr}
+#paper .rp-stats>div{padding:1.8mm 4mm;border-right:.5pt solid var(--line)}#paper .rp-stats>div:last-child{border-right:0}
+#paper .rp-stats label{display:block;font-size:.86em;color:var(--muted)}
+#paper .rp-stats b{font-size:1.43em;color:var(--ink);line-height:1.25}#paper .rp-stats b small{font-size:.67em;font-weight:500;color:var(--text);margin-left:1mm}
+#paper .incl{display:flex;flex-wrap:wrap;gap:1mm 3.6mm;padding:1.5mm 4mm;background:var(--soft);border-top:.5pt solid var(--line);font-size:.9em}
+#paper .incl b{font-weight:600;color:var(--ink);margin-right:1mm}
+#paper .incl span::before{content:"✓";color:var(--ink);font-weight:700;margin-right:1.2mm}
+#paper .alt{display:flex;gap:2.5mm;margin-top:1.4mm;font-size:.9em;color:var(--muted)}#paper .alt b{color:var(--text);font-weight:600;white-space:nowrap}
+#paper .usage{display:grid;gap:2.2mm}
+#paper .bills{width:100%;border-collapse:separate;border-spacing:0;border:.5pt solid var(--line);border-radius:1.6mm;overflow:hidden;font-size:.9em}
+#paper .bills th,#paper .bills td{padding:.55mm 3mm;text-align:right;font-variant-numeric:tabular-nums;border-bottom:.5pt solid var(--line)}
+#paper .bills thead th{background:var(--soft);color:var(--muted);font-weight:600;font-size:.95em;line-height:1.3}
+#paper .bills th:first-child,#paper .bills td:first-child{text-align:left}
+#paper .bills tbody td:first-child{font-weight:500}
+#paper .bills tr.avg td{font-weight:700;color:var(--ink);background:var(--soft);border-bottom:0;border-top:1pt solid var(--ink)}
+#paper .sign-row{display:grid;grid-template-columns:1fr 56mm;gap:5mm;margin-top:2.5mm;align-items:stretch}
+#paper .rp-note{border:.5pt solid var(--line);border-radius:1.6mm;padding:1.3mm 3mm;min-height:15mm;overflow-wrap:anywhere}
+#paper .rp-note label{display:block;font-size:.81em;color:var(--muted)}
+#paper .rp-note .ln{display:block;border-bottom:.5pt dotted #999;height:5.5mm}
+#paper .sign{display:flex;flex-direction:column;justify-content:flex-end;text-align:center;font-size:.95em;line-height:1.5}
+#paper .sign .ln{border-bottom:.6pt dotted #333;margin:0 3mm 1.2mm;flex:1;min-height:9mm}
+#paper .sign small{color:var(--muted);font-size:.9em}
+#paper .spacer{flex:1 1 auto;flex-shrink:1}
+#paper .ft{display:flex;justify-content:space-between;gap:8mm;border-top:.5pt solid var(--line);padding-top:1.5mm;font-size:.81em;color:var(--muted);line-height:1.45}
+#paper .ft span{white-space:nowrap}
+@media print{
+  @page{size:A4;margin:0}
+  body.rp-open{background:#fff;display:block}
+  body.rp-open .device{display:none!important}
+  body.rp-open #report{position:static;display:block;background:#fff;padding:0;overflow:visible}
+  body.rp-open .rp-bar{display:none}
+  body.rp-open #paper{box-shadow:none;margin:0;zoom:1!important}
+}
+}
+
+@media print{
+  body:not(.rp-open){background:#fff;display:block}
+  .device{width:auto;height:auto;padding:0;box-shadow:none;background:none;border-radius:0}
+  .device::before,.foot,.back,.row2,.scrim,.sheet,.hero,.toast{display:none!important}
+  .screen{border-radius:0;height:auto;overflow:visible}
+  .body{overflow:visible;background:#fff}
+  .top{padding-top:20px}
+  .rec .dt{display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="device">
+ <div class="screen" id="screen">
+  <header class="top">
+    <div class="bar">
+      <button class="back" id="back" aria-label="ย้อนกลับ" hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <h1>ประเมินพลังงาน SME</h1>
+    </div>
+    <div class="steptxt" id="steptxt">ขั้นตอน 1 จาก 4</div>
+    <div class="prog" id="prog"><i></i><i></i><i></i><i></i></div>
+    <h2 class="title" id="title"></h2>
+    <div class="sub" id="sub"></div>
+  </header>
+  <main class="body" id="body"></main>
+  <footer class="foot" id="foot"></footer>
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+  <div class="toast" id="toast"></div>
+ </div>
+</div>
+
+<script>
+/* QRCode for JavaScript — Copyright (c) 2009 Kazuhiko Arase — MIT license (bundled from qrcode-terminal) */
+var QRLib=(function(){var M={},F={};function R(n){if(!(n in M)){var m={exports:{}};F[n](m,m.exports);M[n]=m.exports;}return M[n];}
+F['QR8bitByte']=function(module,exports){
+var QRMode = R('QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+};
+F['QRBitBuffer']=function(module,exports){
+function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+};
+F['QRErrorCorrectLevel']=function(module,exports){
+module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+};
+F['QRMaskPattern']=function(module,exports){
+module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+};
+F['QRMath']=function(module,exports){
+var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+};
+F['QRMode']=function(module,exports){
+module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+};
+F['QRPolynomial']=function(module,exports){
+var QRMath = R('QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+};
+F['QRRSBlock']=function(module,exports){
+var QRErrorCorrectLevel = R('QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+};
+F['QRUtil']=function(module,exports){
+var QRMode = R('QRMode');
+var QRPolynomial = R('QRPolynomial');
+var QRMath = R('QRMath');
+var QRMaskPattern = R('QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+};
+F['index']=function(module,exports){
+//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = R('QR8bitByte');
+var QRUtil = R('QRUtil');
+var QRPolynomial = R('QRPolynomial');
+var QRRSBlock = R('QRRSBlock');
+var QRBitBuffer = R('QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+};
+return {QRCode:R('index'),ECL:R('QRErrorCorrectLevel')};})();
+</script>
+<script>
+/* ---------- icons ---------- */
+const I = {
+  bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  plug:'<path d="M9 2v5M15 2v5M6 7h12v4a6 6 0 0 1-12 0zM12 17v5"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/><path d="M17 3v3M15.5 4.5h3"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  sprout:'<path d="M12 21v-9"/><path d="M12 12C12 7 8 4 3 4c0 5 4 8 9 8z"/><path d="M12 14c0-4 3-7 8-7 0 4-3 7-8 7z"/>',
+  cart:'<path d="M3 4h2l2.5 11h11L21 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>',
+  bank:'<path d="M3 10 12 4l9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/>',
+  factory:'<path d="M3 20V10l5 3V10l5 3V6h3l1-3h2l1 3v14z"/><path d="M7 16h2M11 16h2M15 16h2"/>',
+  city:'<path d="M3 21V9h6v12M9 21V4h8v17M17 21v-9h4v9M2 21h20"/><path d="M12 8h2M12 12h2M12 16h2M5 13h2"/>',
+  mountain:'<path d="m2 20 7-12 4 6 3-4 6 10z"/>',
+  bell:'<path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M3 21h18"/>',
+  chip:'<rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>',
+  tractor:'<circle cx="7" cy="16" r="4"/><circle cx="18" cy="17.5" r="2.5"/><path d="M4 12V6h6l2 6h7v3M10 6V3"/>',
+  snow:'<path d="M12 2v20M4.5 6.5l15 11M19.5 6.5l-15 11M9 4l3 2 3-2M9 20l3-2 3 2"/>',
+  ice:'<path d="m12 3 7 4v8l-7 4-7-4V7z"/><path d="m5 7 7 4 7-4M12 11v8"/>',
+  dots:'<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
+  store:'<path d="M4 10v10h16V10M3 4h18l-1 6H4z"/><path d="M10 20v-5h4v5"/>',
+  cup:'<path d="M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 10h2a2 2 0 0 1 0 4h-2M8 3v2M12 3v2"/>',
+  server:'<rect x="4" y="3" width="16" height="7" rx="1.5"/><rect x="4" y="14" width="16" height="7" rx="1.5"/><path d="M8 6.5h.01M8 17.5h.01"/>',
+  office:'<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>',
+  hotel:'<path d="M3 20V8M3 14h18v6M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="2"/>',
+  hosp:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/>',
+  school:'<path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  pump:'<path d="M4 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14M3 20h12M7 8h4"/><path d="M14 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/>',
+  home:'<path d="m3 11 9-7 9 7M5 9.5V20h14V9.5"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
+  battery:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2h6M12.5 8 10 13h4l-2.5 5"/>',
+  meter:'<rect x="4" y="3" width="16" height="18" rx="2"/><rect x="7" y="6" width="10" height="5" rx="1"/><path d="M8 15h2M14 15h2M8 18h8"/>',
+  wave:'<path d="M2 12c2.5-6 5-6 7.5 0s5 6 7.5 0 3.5-4 5-2"/>',
+  chart:'<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  chev:'<path d="m9 6 6 6-6 6"/>',
+  down:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  refresh:'<path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/>',
+  shield:'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  wrench:'<path d="M14.5 6.5a4 4 0 0 0 5 5L21 13l-8 8-3-3 8-8-1.5-1.5a4 4 0 0 1-5-5L13 2z" transform="translate(-1 0)"/>',
+  box:'<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+  tools:'<path d="M4 20l7-7M14 4a4 4 0 0 0 5 5l-3 3-5-5zM4 4l3 3M3 9l6-6"/>',
+  leaf:'<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15zM5 19l7-7"/>'
+};
+const ic = (n,s=24,w=1.8) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
+
+/* ---------- hero illustrations (no external images) ---------- */
+function sky(id){return `<defs><linearGradient id="s${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3f7"/><stop offset="1" stop-color="#eaf6fd"/></linearGradient>
+<linearGradient id="m${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9eef3"/><stop offset="1" stop-color="#9fb0c0"/></linearGradient>
+<linearGradient id="f${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7b93a9"/><stop offset="1" stop-color="#4c6479"/></linearGradient></defs>
+<rect width="360" height="150" fill="url(#s${id})"/>`}
+const HERO = {
+ line:()=>`<svg viewBox="0 0 360 150" preserveAspectRatio="xMidYMid slice">${sky(1)}
+  <g stroke="#7fa2bf" stroke-width="3" opacity=".7"><path d="M0 22h360M0 36h360"/>${[30,90,150,210,270,330].map(x=>`<path d="M${x} 22v80"/>`).join('')}</g>
+  <rect x="200" y="40" width="160" height="50" fill="#4f86b6" opacity=".35"/>
+  <rect x="18" y="38" width="76" height="84" rx="4" fill="url(#m1)" stroke="#6d8296"/>
+  <rect x="30" y="50" width="22" height="16" rx="2" fill="#2b3f52"/><circle cx="70" cy="58" r="5" fill="#e14d4d"/><circle cx="82" cy="58" r="5" fill="#2ec46b"/>
+  <path d="M60 112 360 82v30L60 140z" fill="#cdd7e0" stroke="#8a9cad"/>
+  ${Array.from({length:26},(_,i)=>{const x=80+i*11,y=110-i*1.1+(i%2?3:0);return `<rect x="${x}" y="${y-9}" width="12" height="11" rx="3" fill="#f4fbff" stroke="#9ccbe8" opacity=".95"/>`}).join('')}
+  <rect x="300" y="60" width="22" height="18" fill="#2b74c2"/><rect x="326" y="60" width="22" height="18" fill="#2b74c2"/></svg>`,
+ building:()=>`<svg viewBox="0 0 360 150" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="sb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b7cc4"/><stop offset="1" stop-color="#bfe0f6"/></linearGradient></defs>
+  <rect width="360" height="150" fill="url(#sb)"/><ellipse cx="70" cy="30" rx="40" ry="10" fill="#fff" opacity=".5"/><ellipse cx="270" cy="22" rx="55" ry="9" fill="#fff" opacity=".45"/>
+  <path d="M40 120V60l120-14 170 14v60z" fill="#e7eef5" stroke="#9db0c3"/><path d="M40 60l120-14 170 14" fill="none" stroke="#5c7a96" stroke-width="3"/>
+  ${Array.from({length:9},(_,i)=>`<rect x="${170+i*17}" y="70" width="12" height="40" fill="#3f6f9e" opacity=".75"/>`).join('')}
+  <rect x="60" y="80" width="80" height="40" fill="#5d84aa" opacity=".6"/><rect x="62" y="74" width="76" height="6" fill="#2a5a8a"/>
+  <rect x="290" y="64" width="26" height="56" rx="12" fill="#cfd8e1" stroke="#8ea0b1"/><rect x="318" y="72" width="20" height="48" rx="10" fill="#cfd8e1" stroke="#8ea0b1"/>
+  <rect x="0" y="120" width="360" height="30" fill="#b5c3cf"/><path d="M0 128h360" stroke="#fff" stroke-dasharray="14 10" stroke-width="2"/>
+  ${[18,350].map(x=>`<circle cx="${x}" cy="112" r="12" fill="#3f8f4f"/>`).join('')}</svg>`,
+ ice:()=>`<svg viewBox="0 0 360 150" preserveAspectRatio="xMidYMid slice">${sky(3)}
+  <g stroke="#89a9c3" stroke-width="3" opacity=".6">${[40,120,200,280].map(x=>`<path d="M${x} 0v70"/>`).join('')}<path d="M0 30h360"/></g>
+  <rect x="0" y="95" width="360" height="55" fill="url(#f3)"/><rect x="40" y="88" width="300" height="10" fill="#c9d4de"/>
+  ${Array.from({length:8},(_,i)=>`<path d="M${120+i*28} 88q2-22 13-22t13 22z" fill="#f5fbff" stroke="#a9d3ec"/>`).join('')}
+  <g transform="translate(62 28)"><circle cx="20" cy="14" r="12" fill="#f1c9a5"/><path d="M6 10q14-14 28 0v-2q-14-10-28 0z" fill="#3aa7e0"/><rect x="11" y="16" width="18" height="7" rx="3" fill="#e8f6ff"/><path d="M0 70q2-38 20-40 18 2 20 40z" fill="#2c7bc0"/></g>
+  ${Array.from({length:10},(_,i)=>`<rect x="${10+i*35}" y="118" width="24" height="16" rx="2" fill="#1f73c4"/>`).join('')}</svg>`,
+ meter:()=>`<svg viewBox="0 0 360 150" preserveAspectRatio="xMidYMid slice">${sky(4)}
+  <g stroke="#7f98ad" stroke-width="6" fill="none" opacity=".8"><path d="M0 40h150M0 60h170M0 80h150"/><path d="M120 40v110M150 60v90"/></g>
+  <rect x="190" y="18" width="130" height="120" rx="10" fill="url(#m4)" stroke="#73879a" stroke-width="2"/>
+  <rect x="210" y="34" width="90" height="28" rx="4" fill="#2a3a4a"/><text x="255" y="54" fill="#d6f2ff" font-size="16" text-anchor="middle" font-family="monospace">0088</text>
+  <circle cx="255" cy="96" r="22" fill="#f6f9fb" stroke="#8ea1b2" stroke-width="2"/><path d="M255 96l12-10" stroke="#e14d4d" stroke-width="2.5"/>
+  ${[0,1,2,3].map(i=>`<rect x="${208+i*24}" y="124" width="14" height="22" fill="#5b6e80"/>`).join('')}</svg>`,
+ pump:()=>`<svg viewBox="0 0 120 110" preserveAspectRatio="xMidYMid slice">
+  <defs><linearGradient id="pb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b94d6"/><stop offset="1" stop-color="#174c86"/></linearGradient></defs>
+  <rect width="120" height="110" fill="#c4dcef"/><g stroke="#90a8bc" stroke-width="4" fill="none"><path d="M0 18h120M0 30h120"/><path d="M90 0v60"/></g>
+  <rect x="0" y="82" width="120" height="28" fill="#6e8599"/>
+  <rect x="14" y="46" width="62" height="38" rx="14" fill="url(#pb)"/>${[22,30,38,46,54,62].map(x=>`<path d="M${x} 50v30" stroke="#0f3d68" stroke-width="1.5"/>`).join('')}
+  <circle cx="90" cy="66" r="18" fill="url(#pb)"/><circle cx="90" cy="66" r="7" fill="#9cc6ea"/><rect x="82" y="30" width="16" height="20" fill="#7a8fa2"/></svg>`,
+ sun:()=>`<svg viewBox="0 0 120 110" preserveAspectRatio="xMidYMid slice"><rect width="120" height="110" fill="#bfe3f7"/><circle cx="96" cy="20" r="12" fill="#ffd25a"/>
+  <path d="M10 80 40 40h70L80 80z" fill="#1b4f8a" stroke="#c8d6e3" stroke-width="2"/><path d="M25 60h70M33 50h70M17 70h70M40 40 20 80M63 40 43 80M86 40 66 80" stroke="#7fb3e3" stroke-width="1.2"/>
+  <rect x="0" y="86" width="120" height="24" fill="#8ea3b5"/></svg>`,
+ battery:()=>`<svg viewBox="0 0 120 110" preserveAspectRatio="xMidYMid slice"><rect width="120" height="110" fill="#d2e6f4"/>
+  ${[0,1,2].map(i=>`<rect x="${14+i*32}" y="22" width="26" height="66" rx="4" fill="#eef3f7" stroke="#8ea1b2" stroke-width="2"/><rect x="${18+i*32}" y="${44-i*8}" width="18" height="${40+i*8}" rx="2" fill="#2ec46b" opacity=".85"/>`).join('')}
+  <rect x="0" y="92" width="120" height="18" fill="#7b8fa1"/></svg>`,
+ meterS:()=>`<svg viewBox="0 0 120 110" preserveAspectRatio="xMidYMid slice"><rect width="120" height="110" fill="#d6e8f5"/><rect x="30" y="12" width="60" height="86" rx="8" fill="#eef3f7" stroke="#73879a" stroke-width="2"/><rect x="38" y="22" width="44" height="18" rx="3" fill="#2a3a4a"/><text x="60" y="36" fill="#d6f2ff" font-size="11" text-anchor="middle" font-family="monospace">TOU</text><circle cx="60" cy="66" r="14" fill="#fff" stroke="#8ea1b2"/><path d="M60 66l8-6" stroke="#e14d4d" stroke-width="2"/></svg>`,
+ wave:()=>`<svg viewBox="0 0 120 110" preserveAspectRatio="xMidYMid slice"><rect width="120" height="110" fill="#0f3d68"/><path d="M0 55h120" stroke="#2f6390"/><path d="M0 55c10-30 20-30 30 0s20 30 30 0 20-30 30 0 20 30 30 0" stroke="#2ec4ef" stroke-width="3" fill="none"/><path d="M0 55c10-18 20-24 30 0s20 18 30 10 20-40 30 0 20 30 30 0" stroke="#ffcf5a" stroke-width="2" fill="none" opacity=".8"/></svg>`,
+ chart:()=>`<svg viewBox="0 0 120 110" preserveAspectRatio="xMidYMid slice"><rect width="120" height="110" fill="#e3f1fa"/><rect x="16" y="14" width="88" height="64" rx="6" fill="#fff" stroke="#9fb2c3"/>${[0,1,2,3,4].map(i=>`<rect x="${26+i*15}" y="${60-[16,30,22,40,26][i]}" width="9" height="${[16,30,22,40,26][i]}" fill="#2b74c2"/>`).join('')}<rect x="52" y="78" width="16" height="12" fill="#9fb2c3"/><rect x="36" y="90" width="48" height="5" rx="2" fill="#9fb2c3"/></svg>`
+};
+
+/* ---------- data ---------- */
+const GOALS = [
+  {id:'bill', ic:'bolt', t:'ค่าไฟสูง อยากลดค่าไฟ'},
+  {id:'outage', ic:'plug', t:'ไฟดับ/ไฟตกกระทบการทำงาน'},
+  {id:'night', ic:'moon', t:'ใช้ไฟมากช่วงกลางคืน'},
+  {id:'which', ic:'search', t:'อยากรู้ว่าอุปกรณ์ไหนกินไฟ'},
+  {id:'green', ic:'leaf', t:'อยากใช้พลังงานสะอาด / ลดคาร์บอน'}
+];
+const GROUPS = [
+  {id:'agri', ic:'sprout', t:'เกษตรและอุตสาหกรรมอาหาร'},
+  {id:'consumer', ic:'cart', t:'สินค้าอุปโภคบริโภค'},
+  {id:'finance', ic:'bank', t:'ธุรกิจการเงิน'},
+  {id:'industrial', ic:'factory', t:'สินค้าอุตสาหกรรม'},
+  {id:'property', ic:'city', t:'อสังหาริมทรัพย์และก่อสร้าง'},
+  {id:'resources', ic:'mountain', t:'ทรัพยากร'},
+  {id:'service', ic:'bell', t:'บริการ'},
+  {id:'tech', ic:'chip', t:'เทคโนโลยี'}
+];
+const TYPES = {
+  agri:[['farm','ฟาร์ม','tractor','day'],['foodproc','โรงงานแปรรูปอาหาร','factory','process'],['cold','ห้องเย็น','snow','cooling'],['ice','โรงน้ำแข็ง','ice','cooling']],
+  consumer:[['retail','ร้านค้าปลีก / มินิมาร์ท','store','retail'],['resto','ร้านอาหาร / คาเฟ่','cup','food'],['bev','โรงงานเครื่องดื่ม','factory','process']],
+  finance:[['branch','สำนักงาน / สาขา','office','office'],['dc','ศูนย์ข้อมูล','server','datacenter']],
+  industrial:[['plastic','โรงงานพลาสติก','factory','process'],['metal','โรงงานโลหะ / ชิ้นส่วน','gear','motor'],['textile','โรงงานสิ่งทอ','factory','process']],
+  property:[['bldg','อาคารสำนักงาน','office','office'],['condo','คอนโด / อพาร์ตเมนต์','home','residential'],['contract','ผู้รับเหมาก่อสร้าง','city','day']],
+  resources:[['mine','เหมือง / โรงโม่หิน','mountain','motor'],['gas','สถานีบริการน้ำมัน','pump','retail']],
+  service:[['hotel','โรงแรม / รีสอร์ต','hotel','hotel'],['clinic','โรงพยาบาล / คลินิก','hosp','hotel'],['school','สถานศึกษา','school','office']],
+  tech:[['dc2','ศูนย์ข้อมูล / Server room','server','datacenter'],['elec','โรงงานอิเล็กทรอนิกส์','chip','process'],['soft','สำนักงานซอฟต์แวร์','office','office']]
+};
+const PROFILES = {
+  cooling:{hint:'ระบบทำความเย็นทำงานต่อเนื่อง',day:20,loads:'คอมเพรสเซอร์และปั๊มน้ำ',ee:.15},
+  process:{hint:'เครื่องจักรและมอเตอร์ทำงานตามกะผลิต',day:60,loads:'มอเตอร์ ปั๊ม และระบบลมอัด',ee:.12},
+  motor:{hint:'มอเตอร์ขนาดใหญ่เป็นโหลดหลัก',day:70,loads:'มอเตอร์ เครื่องบด และสายพาน',ee:.12},
+  day:{hint:'ใช้ไฟช่วงกลางวันเป็นหลัก',day:70,loads:'ปั๊มน้ำ พัดลม และแสงสว่าง',ee:.10},
+  retail:{hint:'ตู้แช่และแอร์เปิดตลอดเวลาทำการ',day:55,loads:'ตู้แช่ แอร์ และแสงสว่าง',ee:.12},
+  food:{hint:'แอร์และอุปกรณ์ครัวช่วงเปิดร้าน',day:55,loads:'แอร์ ตู้แช่ และเครื่องครัวไฟฟ้า',ee:.10},
+  office:{hint:'แอร์และแสงสว่างช่วงเวลาทำงาน',day:85,loads:'ระบบปรับอากาศและแสงสว่าง',ee:.15},
+  datacenter:{hint:'เซิร์ฟเวอร์และระบบระบายความร้อน 24 ชม.',day:40,loads:'ระบบระบายความร้อนและ UPS',ee:.18},
+  hotel:{hint:'แอร์ น้ำร้อน และห้องพักใช้งานตลอดวัน',day:45,loads:'ชิลเลอร์ ปั๊มความร้อน และปั๊มน้ำ',ee:.15},
+  residential:{hint:'ใช้ไฟช่วงเย็นและกลางคืนมาก',day:35,loads:'แอร์ส่วนกลาง ปั๊มน้ำ และลิฟต์',ee:.10},
+  other:{hint:'ใช้ค่าเฉลี่ยของธุรกิจทั่วไป',day:55,loads:'ระบบปรับอากาศ มอเตอร์ และแสงสว่าง',ee:.10}
+};
+/* reference assumptions (approximate, for preliminary estimate only) */
+/* อัตรา TOU แรงดัน 22–33 kV (ตามบิล กฟภ.): On-Peak 4.1839 / Off-Peak 2.6037 บาท/หน่วย, Demand 132.93 บาท/kW, Ft 0.1623 บาท/หน่วย, VAT 7% */
+const RATE = 4.4, PEAK = 4.1839, OFF = 2.6037, FT = 0.1623, VAT = 0.07, DEMAND_RATE = 132.93, SOLAR_KWH_M2 = 6000/350, SOLAR_COST_M2 = Math.round(1600000/350), SOLAR_M2_PER_KW = 350/50, EF = 0.4999;
+
+/* ---------- state ---------- */
+const S = { step:1, goals:new Set(['bill']), group:null, type:null, otherText:'', bill:'', day:null, dayTouched:false,
+  meter:'unsure', hours:'', roof:'', days:'', loads:new Set(), loadOther:'', alloc:{off:100,on:0}, lead:null,
+  cust:{biz:'',name:'',phone:'',email:'',prov:'',addr:''}, billAddr:'', staff:{name:'',unit:'',phone:'',email:'',note:''}, interest:null, consent:false, ref:null };
+const STEPS = {1:'ธุรกิจของคุณอยาก\nแก้ปัญหาอะไร?',2:'เลือกกลุ่มธุรกิจ',3:'เลือกประเภทธุรกิจ',4:'ข้อมูลการใช้ไฟฟ้า',5:'ผลประเมินเบื้องต้น',6:'ข้อมูลผู้ติดต่อ'};
+const SUBS = {1:'เลือกได้มากกว่า 1 ข้อ',2:'เลือกกลุ่มที่ตรงกับกิจการของคุณ',3:'',4:'',5:'',6:'กรอกข้อมูลลูกค้าและเจ้าหน้าที่ผู้รับเรื่อง เพื่อออกรายงาน'};
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('th-TH');
+const profile = () => { const t=(TYPES[S.group]||[]).find(x=>x[0]===S.type); return PROFILES[t?t[3]:'other']; };
+const dayPct = () => S.day ?? profile().day;
+let dir = 1;
+
+function go(n){ dir = n>=S.step?1:-1; S.step=n; render(); $('body').scrollTop=0; }
+
+function render(){
+  const s=S.step;
+  $('back').hidden = s===1;
+  $('steptxt').textContent = s<5?`ขั้นตอน ${s} จาก 4`:s===5?'ประเมินเสร็จแล้ว':'ส่งเรื่องต่อผู้เชี่ยวชาญ';
+  [...$('prog').children].forEach((el,i)=>el.classList.toggle('on',i<Math.min(s,4)));
+  $('title').innerHTML = STEPS[s].replace('\n','<br>');
+  $('sub').textContent = SUBS[s];
+  $('sub').style.display = SUBS[s]?'block':'none';
+  $('title').style.paddingBottom = SUBS[s]?'0':'14px';
+  ({1:v1,2:v2,3:v3,4:v4,5:v5,6:v6})[s]();
+}
+function frame(heroHtml, inner, foot){
+  $('body').innerHTML = `${heroHtml?`<div class="hero">${heroHtml}</div>`:''}<div class="panel"><div class="view ${dir<0?'backward':''}">${inner}</div></div>`;
+  $('foot').innerHTML = foot;
+}
+const nextBtn = (label='ถัดไป', ok=true, id='next') => `<button class="cta" id="${id}" ${ok?'':'disabled'}>${label} ${ic('arrow',22,2.2)}</button>`;
+
+/* step 1 */
+function v1(){
+  frame(HERO.line(), GOALS.map(g=>`<button class="opt ${S.goals.has(g.id)?'sel':''}" data-g="${g.id}" aria-pressed="${S.goals.has(g.id)}"><span class="ic">${ic(g.ic,26)}</span><span class="lb">${g.t}</span><span class="radio"></span></button>`).join(''),
+    nextBtn('ถัดไป',S.goals.size>0)+`<div class="partner">โครงการร่วมกับการไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)</div>`);
+  document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const g=b.dataset.g; S.goals.has(g)?S.goals.delete(g):S.goals.add(g); v1();});
+  $('next').onclick=()=>go(2);
+}
+/* step 2 */
+function v2(){
+  frame(HERO.building(), `<div class="grid2">${GROUPS.map(g=>`<button class="tile ${S.group===g.id?'sel':''}" data-gr="${g.id}"><span class="ic">${ic(g.ic,28)}</span><span>${g.t}</span><i class="chk"></i></button>`).join('')}</div>`,
+    nextBtn('ถัดไป',!!S.group));
+  document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{ if(S.group!==b.dataset.gr){S.type=null;S.day=null;} S.group=b.dataset.gr; v2(); });
+  $('next').onclick=()=>go(3);
+}
+/* step 3 */
+function v3(){
+  const g=GROUPS.find(x=>x.id===S.group);
+  const list=[...TYPES[S.group],['other','อื่น ๆ','dots','other']];
+  frame(HERO.ice(), `<div class="center"><span class="pill">${ic(g.ic,18)} ${g.t}</span></div>
+   ${list.map(t=>`<button class="opt ${S.type===t[0]?'sel':''}" data-t="${t[0]}"><span class="ic">${ic(t[2],26)}</span><span class="lb">${t[1]}</span><span class="radio"></span></button>`).join('')}
+   <div class="other-in ${S.type==='other'?'show':''}"><div class="field"><input id="otherTxt" placeholder="ระบุประเภทธุรกิจของคุณ" value="${S.otherText}"></div></div>`,
+   nextBtn('ถัดไป',!!S.type));
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ if(S.type!==b.dataset.t)S.day=null; S.type=b.dataset.t; v3(); if(S.type==='other')$('otherTxt').focus(); });
+  const o=$('otherTxt'); if(o) o.oninput=e=>S.otherText=e.target.value;
+  $('next').onclick=()=>go(4);
+}
+/* step 4 */
+const LOAD_OPTS=[['cool','ระบบทำความเย็น / คอมเพรสเซอร์','snow'],['machine','เครื่องจักรในสายการผลิต','factory'],['pump','ปั๊มน้ำ / มอเตอร์','pump'],['cold','ตู้แช่ / ห้องเย็น','ice'],
+  ['air','ระบบลมอัด (Air Compressor)','wave'],['server','เซิร์ฟเวอร์ / ระบบไอที','server'],['other','อื่น ๆ','dots']];
+function onShare(){ const B=S.billData; return B?B.onK/(B.onK+B.offK):dayPct()/100; }
+/* ค่าไฟแต่ละช่วง (บาท): จากบิล = หน่วย × ราคา · กรอกเอง = ค่าไฟ × สัดส่วน */
+function periodBills(){ const B=S.billData; if(B) return {on:B.onK*P_ON, off:B.offK*P_OFF};
+  const bill=+S.bill||0, d=dayPct()/100; return {on:bill*d, off:bill*(1-d)}; }
+const ALLOC_STEPS=[0,25,50,75,100];
+function loadLabels(){ const l=LOAD_OPTS.filter(o=>S.loads.has(o[0])&&o[0]!=='other').map(o=>o[1].split(' / ')[0].replace(' (Air Compressor)','')); if(S.loads.has('other')&&S.loadOther.trim()) l.push(S.loadOther.trim()); return l; }
+function allocRow(k){
+  const P=periodBills(), tot=P.on+P.off, v=P[k], night=k==='off';
+  return `<div class="al-row">
+    <div class="al-h">${ic(night?'moon':'sun',20)}<span><b>ไฟ${night?'กลางคืน (Off-Peak)':'กลางวัน (On-Peak)'}</b><small id="al-${k}-amt">${tot?`${baht(v)} · ${pct(v/tot)} ของค่าไฟ`:'กรอกค่าไฟก่อน'}</small></span></div>
+    <div class="al-q">เป็นของเครื่องจักรกี่ %</div>
+    <div class="al-seg">${ALLOC_STEPS.map(n=>`<button class="${S.alloc[k]===n?'sel':''}" data-al="${k}" data-v="${n}">${n}%</button>`).join('')}</div>
+  </div>`;
+}
+function allocSum(){ const P=periodBills(), tot=P.on+P.off, m=P.off*S.alloc.off/100+P.on*S.alloc.on/100;
+  return tot?`<span>ค่าไฟของเครื่องจักร</span><b>${baht(m)}</b><small>${pct(m/tot)} ของค่าไฟ · ที่เหลือ ${baht(tot-m)} เป็นไฟสำนักงาน (EE ไม่ได้ลดส่วนนี้)</small>`:'<span>ค่าไฟของเครื่องจักร</span><b>—</b><small>กรอกค่าไฟหรืออัปโหลดบิลเพื่อดูผล</small>'; }
+function loadsCard(){
+  return `<div class="card lq">
+    <div class="lbl" style="display:block">ไฟแต่ละช่วงเวลาเป็นของเครื่องจักรกี่ %?</div>
+    <div class="hint" style="margin:-2px 0 10px">Energy Efficiency ช่วยลดไฟของเครื่องจักร / ระบบการผลิต แต่ไม่รวมไฟสำนักงาน (แอร์ แสงสว่าง คอมพิวเตอร์)</div>
+    ${allocRow('off')}${allocRow('on')}
+    <div class="al-sum" id="alSum">${allocSum()}</div>
+    <div class="lbl" style="margin-top:16px;display:block">เครื่องจักรหรืออุปกรณ์หลักคืออะไร? <em>เลือกได้มากกว่า 1 ข้อ</em></div>
+    <div class="grid2">${LOAD_OPTS.map(o=>`<button class="tile sm ${S.loads.has(o[0])?'sel':''}" data-ld="${o[0]}"><span class="ic">${ic(o[2],22)}</span><span>${o[1]}</span><i class="chk"></i></button>`).join('')}</div>
+    <div class="other-in ${S.loads.has('other')?'show':''}" style="margin-top:9px"><div class="field"><input id="loadOther" placeholder="ระบุเครื่องจักรหรืออุปกรณ์" value="${S.loadOther}"></div></div>
+  </div>`;
+}
+function bindLoads(){
+  document.querySelectorAll('[data-ld]').forEach(b=>b.onclick=()=>{const k=b.dataset.ld;S.loads.has(k)?S.loads.delete(k):S.loads.add(k);b.classList.toggle('sel');
+    if(k==='other'){document.querySelector('.lq .other-in').classList.toggle('show',S.loads.has('other'));if(S.loads.has('other'))$('loadOther').focus();}});
+  $('loadOther').oninput=e=>S.loadOther=e.target.value;
+  document.querySelectorAll('[data-al]').forEach(b=>b.onclick=()=>{const k=b.dataset.al;S.alloc[k]=+b.dataset.v;
+    document.querySelectorAll(`[data-al="${k}"]`).forEach(x=>x.classList.toggle('sel',x===b));updateLoadQ();});
+}
+function updateLoadQ(){ if(!$('alSum')) return; const P=periodBills(), tot=P.on+P.off;
+  ['on','off'].forEach(k=>$(`al-${k}-amt`).textContent=tot?`${baht(P[k])} · ${pct(P[k]/tot)} ของค่าไฟ`:'กรอกค่าไฟก่อน');
+  $('alSum').innerHTML=allocSum(); }
+function billCard(){
+  if(S.billLoading) return `<div class="card upl busy"><div class="spin"></div><div><b>กำลังอ่านบิลค่าไฟ…</b><small>${S.billLoading}</small></div></div>`;
+  const B=S.billData;
+  if(!B) return `<div class="card upl">
+    <label class="drop" for="billFile">${ic('down',26,2)}
+      <span><b>อัปโหลดบิลค่าไฟย้อนหลัง 6 เดือน</b><small>รูปหรือ PDF จากแอป PEA Smart Plus · ระบบอ่านหน่วยไฟและค่า Demand ให้อัตโนมัติ</small></span></label>
+    <input type="file" id="billFile" accept="image/*,application/pdf" multiple hidden>
+    <button class="linkbtn" id="billDemo">ใช้บิลตัวอย่าง 6 เดือน</button>
+  </div><div class="or"><span>หรือกรอกข้อมูลเอง</span></div>`;
+  const kwh=B.onK+B.offK;
+  return `<div class="card">
+    <div class="lbl">ข้อมูลจากบิล ${B.months.length} เดือน <em class="okc">${ic('check',14,2.4)} อ่านสำเร็จ</em></div>
+    <table class="bt"><thead><tr><th>เดือน</th><th>On-Peak</th><th>Off-Peak</th><th>kW</th><th>ยอดรวม</th></tr></thead>
+    <tbody>${B.months.map(r=>`<tr><td>${r[0]}</td><td>${fmt(r[1])}</td><td>${fmt(r[2])}</td><td>${r[3].toFixed(1)}</td><td>${fmt(r[4])}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td>เฉลี่ย</td><td>${fmt(B.onK)}</td><td>${fmt(B.offK)}</td><td>${B.kw.toFixed(1)}</td><td>${fmt(B.total)}</td></tr></tfoot></table>
+    <div class="bsum">
+      <div><small>ค่าไฟเฉลี่ย</small><b>${baht(B.total)}</b></div>
+      <div><small>On-Peak / Off-Peak</small><b>${pct(B.onK/kwh)} / ${pct(B.offK/kwh)}</b></div>
+      <div><small>มิเตอร์</small><b>TOU 22–33 kV</b></div>
+    </div>
+    ${S.billDemo?`<div class="hint" style="margin-top:8px">โหมดสาธิต: แสดงข้อมูลจากบิลตัวอย่าง · ระบบจริงจะอ่านจากไฟล์ที่อัปโหลด</div>`:''}
+    <button class="linkbtn" id="billClear" style="margin-top:6px">ล้างข้อมูลบิล แล้วกรอกเอง</button>
+  </div>`;
+}
+function v4(){
+  const p=profile(), d=dayPct(), B=S.billData;
+  const manual=`<div class="card">
+    <div class="lbl">ค่าไฟเฉลี่ยย้อนหลัง 6 เดือน <em>จำเป็น</em></div>
+    <div class="field" id="billF"><input id="bill" inputmode="numeric" placeholder="กรอกค่าไฟเฉลี่ย" value="${S.bill?fmt(S.bill):''}"><span class="unit">บาท/เดือน</span></div>
+    <div class="errmsg" id="billE">กรุณาอัปโหลดบิล หรือกรอกค่าไฟเฉลี่ยต่อเดือน</div>
+    <div class="hint" style="margin-top:6px">ดูได้จากบิลค่าไฟ หรือแอป PEA Smart Plus / MEA Smart Life</div>
+  </div>
+  <div class="card">
+    <div class="lbl">สัดส่วนการใช้ไฟ <em id="dnNote">${S.dayTouched?'ปรับเองแล้ว':'ค่าประมาณจากประเภทธุรกิจ'}</em></div>
+    <div class="dn">
+      <div class="dnbox">${ic('sun',30)}<div><small>กลางวัน (On-Peak)</small><b id="dv">${d}%</b></div></div>
+      <div class="dnbox">${ic('moon',30)}<div><small>กลางคืน (Off-Peak)</small><b id="nv">${100-d}%</b></div></div>
+    </div>
+    <div class="dn" style="margin-top:6px">
+      <div class="tou-t"><b>จ.–ศ. 09:00–22:00 น.</b></div>
+      <div class="tou-t"><b>จ.–ศ. 22:00–09:00 น.</b><br>ส.–อา. และวันหยุดราชการ ทั้งวัน</div>
+    </div>
+    <input type="range" id="dr" min="0" max="100" step="5" value="${d}" aria-label="สัดส่วนการใช้ไฟกลางวัน">
+    <div class="hint">เลื่อนเพื่อปรับ · แบ่งช่วงเวลาตามอัตรา TOU (วันหยุดชดเชยไม่นับเป็น Off-Peak)</div>
+  </div>
+  <div class="card">
+    <div class="lbl">ประเภทมิเตอร์ไฟฟ้า</div>
+    <select class="field" id="meter">
+      ${[['unsure','ไม่แน่ใจ'],['normal','อัตราปกติ'],['tou','TOU (อัตราตามช่วงเวลาของการใช้)'],['tod','TOD (อัตราตามช่วงเวลาของวัน)']].map(m=>`<option value="${m[0]}" ${S.meter===m[0]?'selected':''}>${m[1]}</option>`).join('')}
+    </select>
+  </div>`;
+  frame(HERO.meter()+(B?'':`<span class="tag btn" id="sample">ข้อมูลตัวอย่าง · แตะเพื่อเติม</span>`),
+  `${billCard()}${B||S.billLoading?'':manual}${S.billLoading?'':loadsCard()}
+  <div class="info" style="margin-bottom:12px">${ic('info',20)}<span>${p.hint}</span></div>
+  <details class="more" ${S.hours||S.roof||S.days?'open':''}><summary><span class="car">${ic('chev',16,2.4)}</span> ข้อมูลเพิ่มเติม (ไม่บังคับ) ช่วยให้ผลแม่นขึ้น</summary>
+   <div class="card">
+    <div class="lbl">จำนวนวันทำงานต่อสัปดาห์</div>
+    <select class="field" id="days">
+      <option value="" ${!S.days?'selected':''}>เลือกจำนวนวัน</option>
+      ${[1,2,3,4,5,6,7].map(n=>`<option value="${n}" ${+S.days===n?'selected':''}>${n} วัน${n===7?' (ทุกวัน)':''}</option>`).join('')}
+    </select>
+    <div class="lbl" style="margin-top:14px">ชั่วโมงทำงานต่อวัน</div>
+    <div class="field"><input id="hours" inputmode="numeric" placeholder="เช่น 10" value="${S.hours}"><span class="unit">ชม./วัน</span></div>
+    <div class="lbl" style="margin-top:14px">พื้นที่หลังคาว่างโดยประมาณ</div>
+    <div class="field"><input id="roof" inputmode="numeric" placeholder="สำหรับประเมินโซลาร์เซลล์" value="${S.roof}"><span class="unit">ตร.ม.</span></div>
+    <div class="hint" style="margin-top:6px">1 ตร.ม. ผลิตไฟได้ ~17 หน่วย/เดือน (อ้างอิง กฟผ.: 50 kW ใช้พื้นที่ ~350 ตร.ม.)</div>
+   </div>
+  </details>`,
+  `<button class="cta" id="next" ${S.billLoading?'disabled':''}>ดูผลประเมิน</button>`);
+  const loadBills=(label,demo)=>{S.billLoading=label;v4();setTimeout(()=>{S.billLoading=null;S.billData=summarizeBills(BILL_SAMPLE);S.billDemo=demo;S.billAddr='99/9 ม.1 ต.บ้านพรุ อ.หาดใหญ่ จ.สงขลา 90250';S.meter='tou';v4();toast('อ่านบิลครบ 6 เดือนแล้ว');},1600);};
+  if($('billFile')){
+    $('billFile').onchange=e=>{const n=e.target.files.length;if(n) loadBills(`ไฟล์ ${n} รายการ · กำลังดึงหน่วยไฟ On/Off-Peak และค่า Demand`,true);};
+    $('billDemo').onclick=()=>loadBills('บิลตัวอย่าง พ.ค.–ต.ค. 69',true);
+  }
+  if($('billClear')) $('billClear').onclick=()=>{S.billData=null;if(S.cust.addr===S.billAddr)S.cust.addr='';S.billAddr='';v4();};
+  if(!B && !S.billLoading){
+    const bill=$('bill');
+    bill.oninput=()=>{const raw=bill.value.replace(/[^\d]/g,''); S.bill=raw?+raw:''; bill.value=raw?fmt(+raw):''; updateLoadQ(); $('billF').classList.remove('err'); $('billE').classList.remove('show');};
+    $('dr').oninput=e=>{S.day=+e.target.value;S.dayTouched=true;$('dv').textContent=S.day+'%';$('nv').textContent=(100-S.day)+'%';$('dnNote').textContent='ปรับเองแล้ว';updateLoadQ();};
+    $('meter').onchange=e=>S.meter=e.target.value;
+    $('sample').onclick=()=>{S.bill=100000;S.day=20;S.dayTouched=true;S.meter='tou';S.hours='24';S.days='7';S.roof='600';S.alloc={off:100,on:0};v4();toast('เติมข้อมูลตัวอย่าง: โรงน้ำแข็งขนาดเล็ก');};
+  }
+  $('days').onchange=e=>S.days=e.target.value;
+  if($('loadOther')) bindLoads();
+  $('hours').oninput=e=>S.hours=e.target.value.replace(/[^\d]/g,'');
+  $('roof').oninput=e=>S.roof=e.target.value.replace(/[^\d]/g,'');
+  $('next').onclick=()=>{ if(S.billData) return go(5); if(!(S.bill>0)){$('billF').classList.add('err');$('billE').classList.add('show');$('bill').focus();return;} go(5); };
+}
+
+/* ---------- assessment engine (3 solutions: EE / Solar / BaaS) ---------- */
+const EE_PRICE=150000;           // ราคาแพ็กเกจ Energy Efficiency (เบื้องต้น)
+const EE_PKG=[['shield','รับประกัน 3 ปี','ครอบคลุมอุปกรณ์และระบบ'],['chart','Subscription แพลตฟอร์ม','ติดตามการใช้ไฟแบบเรียลไทม์'],['tools','ค่าติดตั้ง','ทีมช่างติดตั้งหน้างาน'],['box','ค่าอุปกรณ์','อุปกรณ์ประหยัดพลังงานครบชุด'],['wrench','ค่าบำรุงรักษา','ตรวจเช็กตามรอบ']];
+const EE_RANGE=[.15,.30];        // EE ลดค่าไฟส่วน Off-Peak (เครื่องจักร/ระบบทำความเย็นที่เดินต่อเนื่อง)
+const SOLAR_COVER=[.40,.70];     // สัดส่วนการใช้ไฟ On-Peak ที่อยู่ในช่วงมีแดด และโซลาร์ผลิตแทนได้
+const BAAS_SHIFT=[.30,.60];      // สัดส่วนไฟ On-Peak ที่แบตเตอรี่ย้ายไปชาร์จช่วง Off-Peak ได้
+const BAAS_SOLAR_COVER=[.60,.90]; // แบต+โซลาร์: สัดส่วนการใช้ไฟช่วง 17:00–22:00 ที่แบตครอบคลุมได้
+const EVENING_SHARE=5/13;        // 17:00–22:00 = 5 จาก 13 ชม. ของช่วง On-Peak (สมมติใช้ไฟเท่ากันทุกชั่วโมง)
+const P_ON=(PEAK+FT)*(1+VAT), P_OFF=(OFF+FT)*(1+VAT); // ราคาต่อหน่วยรวม Ft + VAT
+const BAAS_DEMAND_CUT=[.10,.30];  // แบตเตอรี่ตัดยอดพีก ลดค่า Demand ได้ 10–30%
+const BILL_SAMPLE=[ // [เดือน, หน่วย On-Peak, หน่วย Off-Peak, Demand kW, ยอดรวม (บาท)] จากบิล กฟภ. ตัวอย่าง
+  ['พ.ค. 69',7986,112452,221.4,405378.19],['มิ.ย. 69',5364,108498,174.6,374585.84],['ก.ค. 69',19830,85560,300.0,391447.57],
+  ['ส.ค. 69',20298,105102,176.4,434300.57],['ก.ย. 69',25332,80508,319.2,405473.12],['ต.ค. 69',13266,114090,228.6,435384.47]];
+function summarizeBills(m){const n=m.length,sum=i=>m.reduce((a,r)=>a+r[i],0);return {months:m,onK:sum(1)/n,offK:sum(2)/n,kw:sum(3)/n,maxKw:Math.max(...m.map(r=>r[3])),total:sum(4)/n};}
+const BAAS_INVEST='รอข้อมูลแพ็กเกจ (รูปแบบ as a Service)';
+const pct=v=>Math.round(v*100)+'%';
+const baht=v=>'฿'+fmt(v);
+const rng=(a,b)=>Math.round(a)===Math.round(b)?baht(a):`${baht(a)}–${fmt(b)}`;
+const kb=v=>v>=1e6?(v/1e6).toFixed(1)+'M':Math.round(v/1000)+'k';
+const yr=(a,b)=>{const x=Math.min(a,b).toFixed(1),y=Math.max(a,b).toFixed(1);return x===y?x:`${x}–${y}`;};
+
+function assess(){
+  const lbl=loadLabels(), loadsTxt=lbl.length?(lbl.length>1?lbl.slice(0,-1).join(', ')+' และ'+lbl[lbl.length-1]:lbl[0]):profile().loads;
+  const p=profile(), B=S.billData, isTOU=B?true:(S.meter==='tou'||S.meter==='tod');
+  let bill,onK,offK,onBill,offBill,demandBill=0,kw=0,src;
+  if(B){                                   /* จากบิลจริง: ใช้หน่วยไฟเฉลี่ยของแต่ละช่วงโดยตรง */
+    bill=B.total; onK=B.onK; offK=B.offK; kw=B.kw;
+    onBill=onK*P_ON; offBill=offK*P_OFF; demandBill=kw*DEMAND_RATE*(1+VAT); src='bill';
+  }else if(isTOU){                         /* กรอกเอง + มิเตอร์ TOU: แปลงค่าไฟแต่ละช่วงเป็นหน่วยด้วยราคาของช่วงนั้น */
+    /* กรอกเอง + TOU: สัดส่วนกลางวัน/กลางคืน = สัดส่วนค่าไฟ (บาท) → แปลงเป็นหน่วยด้วยราคาของแต่ละช่วง */
+    bill=+S.bill; const d0=dayPct()/100; onBill=bill*d0; offBill=bill*(1-d0); onK=onBill/P_ON; offK=offBill/P_OFF; src='tou';
+  }else{                                   /* กรอกเอง + มิเตอร์ปกติ/ไม่แน่ใจ: ใช้ราคาเฉลี่ย */
+    bill=+S.bill; const d0=dayPct()/100; onBill=bill*d0; offBill=bill*(1-d0); onK=bill/RATE*d0; offK=bill/RATE*(1-d0); src='avg';
+  }
+  const kwh=onK+offK, d=onK/kwh, n=1-d, other=Math.max(0,bill-onBill-offBill-demandBill);
+  const offLine = src==='avg'?[`${baht(bill)} × ${pct(n)}`]:src==='tou'?[`${baht(bill)} × ${pct(n)}`]:[`${fmt(offK)} หน่วย × ฿${P_OFF.toFixed(2)}`];
+  const onLine  = src==='bill'?`${fmt(onK)} หน่วย × ฿${P_ON.toFixed(2)}`:`${baht(bill)} × ${pct(d)}`;
+  const recs=[];
+
+  /* 1) Energy Efficiency → ลด 15–30% ของค่าไฟที่เป็นของเครื่องจักร
+        ค่าไฟเครื่องจักร = ค่าไฟกลางคืน × % ที่เป็นเครื่องจักร + ค่าไฟกลางวัน × % ที่เป็นเครื่องจักร (ไม่รวมไฟสำนักงาน) */
+  const aOff=S.alloc.off/100, aOn=S.alloc.on/100;
+  const mOffB=offBill*aOff, mOnB=onBill*aOn, machineBill=mOffB+mOnB, mK=offK*aOff+onK*aOn;
+  const mShare=machineBill/(onBill+offBill||1);
+  const ee=EE_RANGE.map(r=>machineBill*r);
+  const lineOff=[`ค่าไฟกลางคืน × ${S.alloc.off}% เป็นเครื่องจักร`,`${baht(offBill)} × ${S.alloc.off}%`,baht(mOffB)];
+  const lineOn =[`ค่าไฟกลางวัน × ${S.alloc.on}% เป็นเครื่องจักร`,`${baht(onBill)} × ${S.alloc.on}%`,baht(mOnB)];
+  recs.push({id:'ee',img:'pump',ic:'gear',en:'Energy Efficiency',th:'เพิ่มประสิทธิภาพการใช้พลังงาน',
+    save:ee,kwhSave:EE_RANGE.map(r=>mK*r),pkg:true,payback:`~${Math.ceil(EE_PRICE/ee[1])}–${Math.ceil(EE_PRICE/ee[0])} เดือน`,invest:`${baht(EE_PRICE)} (แพ็กเกจรวม) · คืนทุน ~${Math.ceil(EE_PRICE/ee[1])}–${Math.ceil(EE_PRICE/ee[0])} เดือน`,
+    reason:`ค่าไฟ ${pct(mShare)} (${baht(machineBill)}) ใช้กับ${lbl.length?loadsTxt:'เครื่องจักรและระบบการผลิต'}`,next:`ตรวจวัดการใช้ไฟของ${loadsTxt}`,
+    score:ee[1]/bill*100+(S.goals.has('bill')?6:0)+(S.goals.has('night')?8:0)+(S.goals.has('which')?6:0),
+    calc:[lineOff,lineOn,['ค่าไฟของเครื่องจักรรวม','',baht(machineBill)],['ลดได้ 15–30% ของส่วนนี้',`${baht(machineBill)} × 15–30%`,rng(ee[0],ee[1])]],
+    note:`EE ช่วยลดไฟของ${loadsTxt} ไม่รวมไฟสำนักงาน ${baht(onBill+offBill-machineBill)}${src==='bill'?' · ค่าไฟแต่ละช่วง = หน่วยจากบิล × ราคา (รวม Ft + VAT) · ไม่รวมค่า Demand และค่าบริการ':''}`});
+
+  /* 2) Solar Rooftop — อ้างอิง EGAT Smart Energy Solutions: 50 kW ใช้พื้นที่ ~350 ตร.ม. ผลิต ~6,000 หน่วย/เดือน ราคาเริ่มต้น ฿1,600,000
+        → ผลิตไฟ 17.14 หน่วย/ตร.ม./เดือน · งบติดตั้ง ~฿4,571/ตร.ม. · 7 ตร.ม./kW
+        มีพื้นที่หลังคา: คำนวณจากพื้นที่จริง · ไม่มี: เสนอพื้นที่ที่ผลิตไฟแทนการใช้ไฟ On-Peak ได้ 40–70% */
+  const uPrice = src==='avg'?RATE:P_ON;                     // ราคาต่อหน่วยที่ประหยัดได้ (ช่วงกลางวัน)
+  const roof = S.roof?+S.roof:0;
+  let area, prod, used;
+  if(roof){ const pr=roof*SOLAR_KWH_M2; area=[roof,roof]; prod=[pr,pr]; }
+  else { prod=SOLAR_COVER.map(c=>onK*c); area=prod.map(k=>k/SOLAR_KWH_M2); }
+  used=prod.map(k=>Math.min(k,onK));                      // ใช้เองได้ไม่เกินการใช้ไฟช่วงกลางวัน
+  const excess=prod[1]-used[1];
+  const sol=used.map(k=>k*uPrice);
+  const sKw=area.map(a=>a/SOLAR_M2_PER_KW), cost=area.map(a=>a*SOLAR_COST_M2);
+  const pay=[cost[0]/(sol[0]*12||1),cost[1]/(sol[1]*12||1)];
+  const rr=(a,b,f=fmt,u='')=>Math.round(a)===Math.round(b)?`${f(a)}${u}`:`${f(a)}–${f(b)}${u}`;
+  recs.push({id:'solar',img:'sun',ic:'sun',en:'Solar Rooftop',th:'โซลาร์เซลล์บนหลังคา',
+    save:sol,kwhSave:used,invest:`~${rr(cost[0],cost[1],baht)} (฿${fmt(SOLAR_COST_M2)}/ตร.ม.) · คืนทุน ~${yr(pay[0],pay[1])} ปี`,
+    reason:roof?`หลังคา ${fmt(roof)} ตร.ม. ติดตั้งได้ ~${sKw[0].toFixed(0)} kW ผลิตไฟ ~${fmt(prod[0])} หน่วย/เดือน`:`ใช้ไฟช่วงกลางวัน (On-Peak) ${pct(d)} ซึ่งตรงกับช่วงที่โซลาร์ผลิตไฟได้`,
+    next:roof?'สำรวจหลังคาและโครงสร้างรับน้ำหนัก':'วัดพื้นที่หลังคาที่ติดตั้งได้จริง',
+    score:sol[1]/bill*100+(S.goals.has('green')?15:0)+(S.goals.has('bill')?3:0),
+    calc:[
+      roof?['พื้นที่หลังคาที่ติดตั้งได้','กรอกโดยผู้ใช้',`${fmt(roof)} ตร.ม.`]
+          :['พื้นที่ที่แนะนำ',`ผลิตแทนไฟ On-Peak 40–70% (${fmt(onK)} หน่วย) ÷ ${SOLAR_KWH_M2.toFixed(2)}`,`${rr(area[0],area[1])} ตร.ม.`],
+      ['ผลิตไฟได้',`${rr(area[0],area[1])} ตร.ม. × ${SOLAR_KWH_M2.toFixed(2)} หน่วย/ตร.ม.`,`${rr(prod[0],prod[1])} หน่วย/เดือน`],
+      ...(excess>1?[['ใช้เองได้ (ไม่เกินการใช้ไฟกลางวัน)',`สูงสุด ${fmt(onK)} หน่วย`,`${rr(used[0],used[1])} หน่วย`]]:[]),
+      ['ลดค่าไฟได้',`${rr(used[0],used[1])} หน่วย × ฿${uPrice.toFixed(2)}${src==='avg'?' (ราคาเฉลี่ย)':' (On-Peak รวม Ft+VAT)'}`,rr(sol[0],sol[1],baht)+'/เดือน'],
+    ],
+    note:`ขนาดระบบ ~${rr(sKw[0],sKw[1],v=>v.toFixed(0))} kW (7 ตร.ม./kW) · ผลประหยัดยังไม่หักเงินลงทุน${excess>1?` · ผลิตเกินการใช้กลางวัน ~${fmt(excess)} หน่วย ไม่นับเป็นผลประหยัด`:''}${roof?'':' · กรอกพื้นที่หลังคาในขั้นตอนที่ 4 เพื่อคำนวณตามพื้นที่จริง'} · อ้างอิง: EGAT Smart Energy Solutions (50 kW / 350 ตร.ม. / 6,000 หน่วย/เดือน / ฿1.6M)`});
+
+  /* 3) Battery as a Service — 2 รูปแบบ (+ ลดค่า Demand เมื่อมีข้อมูลจากบิล)
+     A) แบตเตอรี่อย่างเดียว: ชาร์จไฟราคาถูกช่วง Off-Peak (22:00–09:00) → ใช้แทนไฟ On-Peak (09:00–22:00)
+     B) แบตเตอรี่ + โซลาร์: เก็บไฟฟรีจากโซลาร์ 08:00–17:00 → ใช้ช่วงแดดหมด 17:00–22:00 (ยังเป็น On-Peak) */
+  const spread=(PEAK-OFF)*(1+VAT);
+  const eveK=onK*EVENING_SHARE;
+  const dem=BAAS_DEMAND_CUT.map(c=>demandBill*c);
+  const solo=BAAS_SHIFT.map((s,k)=>onK*s*spread+dem[k]);
+  const withSolar=BAAS_SOLAR_COVER.map((c,k)=>eveK*c*P_ON+dem[k]);
+  const demLine = demandBill?[[`ลดค่า Demand 10–30%`,`${kw.toFixed(1)} kW × ฿${DEMAND_RATE} (+VAT) = ${baht(demandBill)}`,rng(dem[0],dem[1])]]:[];
+  const onKLine = ['หน่วยไฟช่วง On-Peak (09:00–22:00)',src==='bill'?'เฉลี่ยจากบิล 6 เดือน':src==='tou'?`${baht(onBill)} ÷ ฿${P_ON.toFixed(2)}`:`${baht(bill)} ÷ ฿${RATE} × ${pct(d)}`,`${fmt(onK)} หน่วย`];
+  const demNote = demandBill?'':' · อัปโหลดบิลเพื่อคำนวณการลดค่า Demand เพิ่ม';
+  const mode=S.baasMode||'solo';
+  const M={
+    solo:{label:'แบตเตอรี่อย่างเดียว',save:solo,
+      tl:[[0,9,'chg','ชาร์จ (ไฟถูก)'],[9,22,'dis','จ่ายไฟแทน On-Peak'],[22,24,'chg','']],
+      desc:'ชาร์จไฟช่วงกลางคืนที่ค่าไฟถูก แล้วนำมาใช้แทนช่วงกลางวัน 09:00–22:00 น. ที่ค่าไฟแพง และช่วยตัดยอดพีกเพื่อลดค่า Demand',
+      calc:[onKLine,
+        ['ส่วนต่างราคาต่อหน่วย (รวม VAT)',`(฿${PEAK} − ฿${OFF}) × 1.07`,`฿${spread.toFixed(2)}`],
+        ['แบตเตอรี่จ่ายแทนได้ 30–60%',`${fmt(onK)} หน่วย × 30–60% × ฿${spread.toFixed(2)}`,rng(solo[0]-dem[0],solo[1]-dem[1])],
+        ...demLine,
+        ['รวมผลประหยัด','',rng(solo[0],solo[1])]],
+      note:`ต้องใช้มิเตอร์ TOU จึงจะได้ส่วนต่างราคา${isTOU?'':' (ปัจจุบันยังไม่ใช่/ไม่แน่ใจ)'}${demNote}`},
+    solar:{label:'แบตเตอรี่ + โซลาร์',save:withSolar,
+      tl:[[8,17,'sol','เก็บไฟฟรีจากโซลาร์'],[17,22,'dis','จ่ายไฟ'],[0,8,'off',''],[22,24,'off','']],
+      desc:'เก็บไฟส่วนเกินจากโซลาร์ช่วง 08:00–17:00 น. แล้วนำมาใช้หลังแดดหมด 17:00–22:00 น. ซึ่งยังเป็นช่วงค่าไฟแพง หลังจากนั้นใช้ไฟปกติ',
+      calc:[
+        ['หน่วยไฟช่วง 17:00–22:00',`${fmt(onK)} หน่วย × 5/13 ชม.`,`${fmt(eveK)} หน่วย`],
+        ['ไฟจากโซลาร์ไม่มีต้นทุน','ประหยัดเต็มราคา On-Peak (รวม Ft+VAT)',`฿${P_ON.toFixed(2)}`],
+        ['แบตเตอรี่ครอบคลุมได้ 60–90%',`${fmt(eveK)} หน่วย × 60–90% × ฿${P_ON.toFixed(2)}`,rng(withSolar[0]-dem[0],withSolar[1]-dem[1])],
+        ...demLine,
+        ['รวมผลประหยัด','',rng(withSolar[0],withSolar[1])]],
+      note:'คิดเฉพาะผลจากแบตเตอรี่ ไม่รวมไฟที่โซลาร์จ่ายตรงช่วงกลางวัน (ดูการ์ด Solar Rooftop) · ต้องลงทุนโซลาร์เพิ่ม'+demNote}
+  };
+  const cur=M[mode];
+  recs.push({id:'baas',img:'battery',ic:'battery',en:'Battery as a Service',th:'บริการแบตเตอรี่กักเก็บพลังงาน',
+    save:cur.save,kwhSave:[0,0],invest:BAAS_INVEST,modes:M,mode,
+    reason:S.goals.has('outage')?'สำรองไฟเมื่อไฟดับ/ไฟตก และย้ายการใช้ไฟออกจากช่วง On-Peak':(demandBill?`ย้ายการใช้ไฟ On-Peak ${pct(d)} และลดค่า Demand ~${baht(demandBill)}/เดือน`:`ย้ายการใช้ไฟ On-Peak ${pct(d)} ไปใช้ไฟราคาถูกหรือไฟจากโซลาร์`),
+    next:isTOU?'วิเคราะห์โหลดรายชั่วโมงเพื่อเลือกขนาดแบตเตอรี่':'ตรวจสอบ/เปลี่ยนเป็นมิเตอร์ TOU ก่อนติดตั้ง',
+    score:Math.max(solo[1],withSolar[1])/bill*100+(S.goals.has('outage')?15:0)+(isTOU?4:0),
+    calc:cur.calc,note:cur.note});
+
+  recs.sort((a,b)=>b.score-a.score);
+  return {recs,kwh,onK,offK,onBill,offBill,demandBill,other,kw,bill,d,isTOU,src};
+}
+
+/* step 5 */
+function pkgHtml(){
+  return `<div class="pkg">
+    <div class="pkg-h"><div><span class="pkg-k">แพ็กเกจ Energy Efficiency</span><div class="pkg-p">${baht(EE_PRICE)}<small>ราคาเบื้องต้น</small></div></div><span class="pkg-tag">รวมทุกอย่าง</span></div>
+    <div class="pkg-l">สิ่งที่จะได้รับ</div>
+    <ul class="pkg-g">${EE_PKG.map((x,i)=>`<li class="${i===0?'wide':''}"><span class="pkg-i">${ic(x[0],20,1.9)}</span><span><b>${x[1]}</b><small>${x[2]}</small></span></li>`).join('')}</ul>
+  </div>`;
+}
+function tlHtml(segs){
+  const ticks=[...new Set(segs.flatMap(s=>[s[0],s[1]]))].sort((a,b)=>a-b);
+  return `<div class="tl">
+    <div class="tl-row"><span class="tl-k">ค่าไฟ</span><div class="tl-bar">
+      <i class="seg off" style="left:0;width:${9/24*100}%"></i><i class="seg peak" style="left:${9/24*100}%;width:${13/24*100}%"><em>On-Peak ฿${PEAK}</em></i><i class="seg off" style="left:${22/24*100}%;width:${2/24*100}%"></i></div></div>
+    <div class="tl-row"><span class="tl-k">แบตเตอรี่</span><div class="tl-bar">
+      ${segs.map(s=>`<i class="seg ${s[2]}" style="left:${s[0]/24*100}%;width:${(s[1]-s[0])/24*100}%">${s[3]?`<em>${s[3]}</em>`:''}</i>`).join('')}</div></div>
+    <div class="tl-ax">${ticks.map(t=>`<span style="left:${t/24*100}%">${String(t).padStart(2,'0')}</span>`).join('')}</div>
+  </div>`;
+}
+function modesHtml(r){
+  const m=r.modes[r.mode];
+  return `<div class="seg-t" role="tablist">${Object.entries(r.modes).map(([k,v])=>`<button class="${k===r.mode?'on':''}" data-mode="${k}">${k==='solar'?ic('sun',16,2):ic('moon',16,2)} ${v.label}</button>`).join('')}</div>
+    <div class="mode-d">${m.desc}</div>${tlHtml(m.tl)}`;
+}
+function calcHtml(r){
+  return `<div class="calc">${r.calc.map((c,i)=>`<div class="eq ${i===r.calc.length-1?'res':''}"><span>${c[0]}<small>${c[1]}</small></span><b>${c[2]}</b></div>`).join('')}
+    <div class="cnote">${r.note}</div></div>`;
+}
+const OPEN=new Set();
+function v5(){
+  const R=assess(), top=R.recs[0], rest=R.recs.slice(1);
+  const typeName = S.type==='other'?(S.otherText||'อื่น ๆ'):(TYPES[S.group].find(t=>t[0]===S.type)||[])[1];
+  const sv=r=>`ประหยัด ${rng(r.save[0],r.save[1])}/เดือน`;
+  const sp=r=>{const a=pct(r.save[0]/R.bill),b=pct(r.save[1]/R.bill);return `${a===b?a:a+'–'+b} ของค่าไฟ`;};
+  $('body').innerHTML = `<div class="panel" style="margin-top:0;border-radius:0;background:linear-gradient(180deg,var(--navy-700) 0,var(--navy-700) 70px,var(--bg) 70px)"><div class="view">
+   <div class="rec-top">
+    <div class="rec-head"><div class="rec-img">${HERO[top.img]()}</div>
+     <div><span class="badge">${ic('check',16,2.2)} แนะนำให้ประเมินก่อน</span>
+      <div class="rec-title">${top.en}</div><div class="rec-th">${top.th}</div></div></div>
+    <dl class="kv"><dt>เหตุผล</dt><dd>${top.reason}</dd><dt>ขั้นตอนถัดไป</dt><dd>${top.next}</dd>
+     <dt>ศักยภาพ</dt><dd style="color:var(--ok)">${sv(top)}<br><small style="color:var(--muted);font-weight:400">${sp(top)}</small></dd>
+     ${top.pkg?`<dt>คืนทุน</dt><dd>${top.payback} <small style="color:var(--muted);font-weight:400">(${baht(EE_PRICE)} ÷ ผลประหยัดต่อเดือน)</small></dd>`:`<dt>เงินลงทุน</dt><dd>${top.invest}</dd>`}</dl>
+    ${top.pkg?pkgHtml():''}
+    ${top.modes?modesHtml(top):''}
+    <details class="how"><summary>${ic('chev',14,2.6)} ดูวิธีคำนวณ</summary>${calcHtml(top)}</details>
+   </div>
+
+   <div class="sec">${R.src==='bill'?`ค่าไฟเฉลี่ยจากบิล ${S.billData.months.length} เดือน`:'ค่าไฟของคุณแบ่งตามช่วงเวลา TOU'} <em>${typeName||''}</em></div>
+   <div class="card" style="padding:12px 14px">
+    <div class="split"><i style="width:${R.onBill/R.bill*100}%"></i><i style="width:${R.offBill/R.bill*100}%"></i>${R.demandBill?`<i class="dem" style="width:${R.demandBill/R.bill*100}%"></i>`:''}</div>
+    <div class="split-l"><span><i class="dot day"></i>On-Peak ${pct(R.d)} ของหน่วย<b>${baht(R.onBill)}</b></span><span><i class="dot night"></i>Off-Peak ${pct(1-R.d)} ของหน่วย<b>${baht(R.offBill)}</b></span></div>
+    <div class="units">
+     ${R.src==='bill'?`<div class="u-row"><span>On-Peak</span><span>${fmt(R.onK)} หน่วย × ฿${P_ON.toFixed(2)}</span><b>${baht(R.onBill)}</b></div>
+     <div class="u-row"><span>Off-Peak</span><span>${fmt(R.offK)} หน่วย × ฿${P_OFF.toFixed(2)}</span><b>${baht(R.offBill)}</b></div>
+     <div class="u-row"><span>Demand</span><span>${R.kw.toFixed(1)} kW × ฿${DEMAND_RATE} × 1.07</span><b>${baht(R.demandBill)}</b></div>
+     <div class="u-row"><span>อื่น ๆ</span><span>ค่าบริการ, ค่า PF (รวม VAT)</span><b>${baht(R.other)}</b></div>
+     <div class="u-row tot"><span>รวม</span><span>${fmt(R.kwh)} หน่วย/เดือน</span><b>${baht(R.bill)}</b></div>`
+     :R.isTOU?`<div class="u-row"><span>On-Peak</span><span>${baht(R.onBill)} ÷ ฿${P_ON.toFixed(2)}</span><b>${fmt(R.onK)} หน่วย</b></div>
+     <div class="u-row"><span>Off-Peak</span><span>${baht(R.offBill)} ÷ ฿${P_OFF.toFixed(2)}</span><b>${fmt(R.offK)} หน่วย</b></div>
+     <div class="u-row tot"><span>รวม</span><span></span><b>≈ ${fmt(R.kwh)} หน่วย/เดือน</b></div>`
+     :`<div class="u-row"><span>ทั้งหมด</span><span>${baht(R.bill)} ÷ ฿${RATE} (ราคาเฉลี่ย)</span><b>${fmt(R.kwh)} หน่วย</b></div>
+     <div class="u-row tot"><span>รวม</span><span></span><b>≈ ${fmt(R.kwh)} หน่วย/เดือน</b></div>`}
+    </div>
+    <div class="hint" style="margin-top:6px">${R.src==='bill'?`ราคาต่อหน่วยรวม Ft ฿${FT} และ VAT 7% แล้ว · ราคาเฉลี่ยจริง ฿${(R.bill/R.kwh).toFixed(2)}/หน่วย`:R.isTOU?'มิเตอร์ TOU: แปลงเป็นหน่วยด้วยราคาของแต่ละช่วงเวลา (รวม Ft + VAT) · อัปโหลดบิลเพื่อความแม่นยำ':'มิเตอร์อัตราปกติ/ไม่แน่ใจ: ใช้ราคาเฉลี่ย ~฿'+RATE+'/หน่วย · อัปโหลดบิลหรือเลือกมิเตอร์ TOU เพื่อคำนวณแยกช่วงเวลา'}</div>
+   </div>
+
+   <div class="sec">มาตรการอื่นที่เหมาะสม</div>
+   ${rest.map(r=>`<div class="rec ${OPEN.has(r.id)?'open':''}"><button data-rec="${r.id}"><span class="ic">${ic(r.ic,30,1.6)}</span><span class="nm">${r.en}<span class="th">${r.th}</span><small>${sv(r)} · ${sp(r)}</small></span><span class="car">${ic('chev',18,2.2)}</span></button>
+     <div class="dt"><div><b>เหตุผล:</b> ${r.reason}</div><div><b>เงินลงทุน:</b> ${r.invest}</div>${r.pkg?pkgHtml():''}${r.modes?modesHtml(r):''}${calcHtml(r)}</div></div>`).join('')}
+
+   <div class="row2"><button class="btn2" id="print">${ic('down',18,2)} บันทึกผล PDF</button><button class="btn2" id="restart">${ic('refresh',18,2)} ประเมินใหม่</button></div>
+   <div class="note">ประมาณการเบื้องต้น: ค่าไฟเฉลี่ย ~฿${RATE}/หน่วย · อัตรา TOU 22–33 kV: On-Peak (จ.–ศ. 09:00–22:00 น.) ฿${PEAK} / Off-Peak (จ.–ศ. 22:00–09:00 น. และ ส.–อา./วันหยุดราชการทั้งวัน) ฿${OFF}/หน่วย + Ft ฿${FT} + VAT 7% · Demand ฿${DEMAND_RATE}/kW · โซลาร์ผลิตไฟ ~${SOLAR_KWH_M2.toFixed(2)} หน่วย/ตร.ม./เดือน ค่าติดตั้ง ~฿${fmt(SOLAR_COST_M2)}/ตร.ม. (EGAT Smart Energy Solutions) · ค่าการปล่อย ${EF} kgCO₂/หน่วย · ตัวเลขจริงขึ้นกับการตรวจวัดหน้างาน</div>
+  </div></div>`;
+  $('foot').innerHTML = `<button class="cta" id="lead">ขอรับการตรวจวัดจากผู้เชี่ยวชาญ ${ic('arrow',22,2.2)}</button>`;
+  document.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{const id=b.dataset.rec;OPEN.has(id)?OPEN.delete(id):OPEN.add(id);b.parentElement.classList.toggle('open');});
+  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{S.baasMode=b.dataset.mode;const y=$('body').scrollTop;v5();$('body').scrollTop=y;});
+  $('print').onclick=()=>window.print();
+  $('restart').onclick=()=>{Object.assign(S,{goals:new Set(['bill']),group:null,type:null,otherText:'',bill:'',day:null,dayTouched:false,meter:'unsure',hours:'',roof:'',days:'',loads:new Set(),loadOther:'',alloc:{off:100,on:0}});go(1);S.baasMode='solo';S.billData=null;S.ref=null;S.interest=null;OPEN.clear();};
+  $('lead').onclick=()=>go(6);
+}
+
+/* ---------- step 6: ข้อมูลผู้ติดต่อ + เจ้าหน้าที่ผู้รับเรื่อง ---------- */
+const PROVINCES=['กรุงเทพมหานคร','กระบี่','กาญจนบุรี','กาฬสินธุ์','กำแพงเพชร','ขอนแก่น','จันทบุรี','ฉะเชิงเทรา','ชลบุรี','ชัยนาท','ชัยภูมิ','ชุมพร','เชียงราย','เชียงใหม่','ตรัง','ตราด','ตาก','นครนายก','นครปฐม','นครพนม','นครราชสีมา','นครศรีธรรมราช','นครสวรรค์','นนทบุรี','นราธิวาส','น่าน','บึงกาฬ','บุรีรัมย์','ปทุมธานี','ประจวบคีรีขันธ์','ปราจีนบุรี','ปัตตานี','พระนครศรีอยุธยา','พะเยา','พังงา','พัทลุง','พิจิตร','พิษณุโลก','เพชรบุรี','เพชรบูรณ์','แพร่','ภูเก็ต','มหาสารคาม','มุกดาหาร','แม่ฮ่องสอน','ยโสธร','ยะลา','ร้อยเอ็ด','ระนอง','ระยอง','ราชบุรี','ลพบุรี','ลำปาง','ลำพูน','เลย','ศรีสะเกษ','สกลนคร','สงขลา','สตูล','สมุทรปราการ','สมุทรสงคราม','สมุทรสาคร','สระแก้ว','สระบุรี','สิงห์บุรี','สุโขทัย','สุพรรณบุรี','สุราษฎร์ธานี','สุรินทร์','หนองคาย','หนองบัวลำภู','อ่างทอง','อำนาจเจริญ','อุดรธานี','อุตรดิตถ์','อุทัยธานี','อุบลราชธานี'];
+const emailOk=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+const phoneOk=v=>/^0\d{8,9}$/.test(v.replace(/\D/g,''));
+const FORM={
+  cust:[['biz','ชื่อกิจการ / บริษัท','เช่น โรงน้ำแข็ง…',1,'text','organization'],['name','ชื่อ-นามสกุล ผู้ติดต่อ','',1,'text','name'],
+        ['phone','เบอร์โทรศัพท์','0XXXXXXXXX',1,'tel','tel'],['email','อีเมล','name@example.com',1,'email','email']],
+  staff:[['name','ชื่อ-นามสกุล เจ้าหน้าที่','',1,'text','off'],['unit','หน่วยงาน / ฝ่าย','เช่น ฝ่ายบริการลูกค้า…',1,'text','off'],
+         ['phone','เบอร์โทรศัพท์','ไม่บังคับ',0,'tel','off'],['email','อีเมล','name@example.com',1,'email','off']]
+};
+function fieldHtml(g,f){ const v=S[g][f[0]]||''; return `<div class="ff"><label for="${g}-${f[0]}">${f[1]}${f[3]?' <i>*</i>':''}</label>
+  <div class="field" id="${g}-${f[0]}-w"><input id="${g}-${f[0]}" data-g="${g}" data-k="${f[0]}" type="${f[4]==='email'?'email':'text'}" ${f[4]==='tel'?'inputmode="tel"':''} autocomplete="${f[5]}" placeholder="${f[2]}" value="${v.replace(/"/g,'&quot;')}"></div>
+  <div class="errmsg" id="${g}-${f[0]}-e"></div></div>`; }
+function validate(show){
+  let ok=true;
+  for(const g of ['cust','staff']) for(const f of FORM[g]){
+    const v=(S[g][f[0]]||'').trim(); let err='';
+    if(f[3]&&!v) err='กรุณากรอกข้อมูล';
+    else if(v&&f[4]==='email'&&!emailOk(v)) err='รูปแบบอีเมลไม่ถูกต้อง';
+    else if(v&&f[4]==='tel'&&!phoneOk(v)) err='เบอร์โทรศัพท์ 9–10 หลัก ขึ้นต้นด้วย 0';
+    if(err) ok=false;
+    if(show){ $(`${g}-${f[0]}-w`).classList.toggle('err',!!err); const e=$(`${g}-${f[0]}-e`); e.textContent=err; e.classList.toggle('show',!!err); }
+  }
+  if(!S.cust.prov){ ok=false; if(show){$('cust-prov').classList.add('err');$('cust-prov-e').classList.add('show');} }
+  if(!S.interest.size){ ok=false; if(show) $('int-e').classList.add('show'); }
+  if(!S.consent){ ok=false; if(show) $('cs-e').classList.add('show'); }
+  return ok;
+}
+function v6(){
+  const R=assess();
+  if(!S.interest) S.interest=new Set([R.recs[0].id]);
+  if(S.billData&&S.billAddr&&!S.cust.addr){ S.cust.addr=S.billAddr; if(!S.cust.prov) S.cust.prov='สงขลา'; }
+  frame('',`<div class="card form">
+    <div class="fh">${ic('office',20)}<span><b>ข้อมูลลูกค้า</b><small>ผู้ขอรับการตรวจวัดพลังงาน</small></span></div>
+    ${FORM.cust.map(f=>fieldHtml('cust',f)).join('')}
+    <div class="ff"><label for="cust-prov">จังหวัดที่ตั้งกิจการ <i>*</i></label>
+      <select class="field" id="cust-prov"><option value="">เลือกจังหวัด</option>${PROVINCES.map(p=>`<option ${S.cust.prov===p?'selected':''}>${p}</option>`).join('')}</select>
+      <div class="errmsg" id="cust-prov-e">กรุณาเลือกจังหวัด</div></div>
+    <div class="ff"><label for="cust-addr">สถานที่ใช้ไฟฟ้า (ที่อยู่)${S.billData&&S.billAddr?' <small class="frombill">ดึงจากบิลค่าไฟฟ้า</small>':''}</label>
+      <textarea class="field ta" id="cust-addr" rows="2" placeholder="ไม่บังคับ · เช่น เลขที่ ถนน ตำบล อำเภอ">${esc(S.cust.addr)}</textarea></div>
+    <div class="ff"><label>มาตรการที่สนใจ <i>*</i></label>
+      ${R.recs.map((r,i)=>`<button class="opt sm ${S.interest.has(r.id)?'sel':''}" data-int="${r.id}"><span class="ic">${ic(r.ic,22)}</span><span class="lb">${r.en}<small>${i===0?'แนะนำอันดับ 1 · ':''}${r.th}</small></span><span class="radio"></span></button>`).join('')}
+      <div class="errmsg" id="int-e">เลือกอย่างน้อย 1 มาตรการ</div></div>
+  </div>
+  <div class="card form">
+    <div class="fh">${ic('shield',20)}<span><b>เจ้าหน้าที่ผู้รับเรื่อง</b><small>ข้อมูลจะแสดงท้ายรายงาน</small></span></div>
+    ${FORM.staff.map(f=>fieldHtml('staff',f)).join('')}
+    <div class="ff"><label for="staff-note">ความคิดเห็น / สิ่งที่ต้องการเพิ่มเติม</label>
+      <textarea class="field ta" id="staff-note" rows="4" placeholder="เช่น ลูกค้าสะดวกให้เข้าตรวจวัดช่วงเช้า ต้องการข้อมูลการบำรุงรักษาหม้อแปลงเพิ่มเติม…">${S.staff.note}</textarea></div>
+  </div>
+  <label class="consent"><input type="checkbox" id="cs" ${S.consent?'checked':''}> ลูกค้ายินยอมให้เก็บและใช้ข้อมูลเพื่อติดต่อกลับและประเมินพลังงาน ตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 (PDPA)</label>
+  <div class="errmsg" id="cs-e" style="margin:-8px 0 10px">กรุณายืนยันความยินยอมของลูกค้า</div>
+  <button class="linkbtn" id="fillDemo">เติมข้อมูลตัวอย่าง</button>`,
+  `<button class="cta" id="mk">${ic('meter',20,2)} สร้างรายงาน</button>`);
+  document.querySelectorAll('[data-g]').forEach(i=>i.oninput=()=>{S[i.dataset.g][i.dataset.k]=i.value; $(`${i.dataset.g}-${i.dataset.k}-w`).classList.remove('err'); $(`${i.dataset.g}-${i.dataset.k}-e`).classList.remove('show');});
+  $('cust-prov').onchange=e=>{S.cust.prov=e.target.value;e.target.classList.remove('err');$('cust-prov-e').classList.remove('show');};
+  $('staff-note').oninput=e=>S.staff.note=e.target.value;
+  $('cust-addr').oninput=e=>S.cust.addr=e.target.value;
+  $('cs').onchange=e=>{S.consent=e.target.checked;$('cs-e').classList.remove('show');};
+  document.querySelectorAll('[data-int]').forEach(b=>b.onclick=()=>{const k=b.dataset.int;S.interest.has(k)?S.interest.delete(k):S.interest.add(k);b.classList.toggle('sel');$('int-e').classList.remove('show');});
+  $('fillDemo').onclick=()=>{Object.assign(S.cust,{biz:'โรงน้ำแข็งตัวอย่าง',name:'สมชาย ใจดี',phone:'0812345678',email:'contact@example.com',prov:'สงขลา',addr:S.cust.addr||'99/9 ม.1 ต.บ้านพรุ อ.หาดใหญ่ จ.สงขลา 90250'});
+    Object.assign(S.staff,{name:'สมหญิง รักษ์พลังงาน',unit:'ฝ่ายบริการลูกค้าด้านพลังงาน',phone:'021234567',email:'staff@example.com',note:'ลูกค้าเดินเครื่องผลิตน้ำแข็งช่วงกลางคืน สนใจลดค่าไฟของคอมเพรสเซอร์ ขอนัดตรวจวัดหน้างานภายในเดือนนี้'});S.consent=true;v6();};
+  $('mk').onclick=()=>{ if(!validate(true)){ const e=document.querySelector('.field.err,.errmsg.show'); if(e) e.scrollIntoView({block:'center',behavior:'smooth'}); toast('กรุณากรอกข้อมูลให้ครบ'); return; }
+    if(!S.ref){const t=new Date(),y=t.getFullYear()+543;S.ref=`SME-${y}${String(t.getMonth()+1).padStart(2,'0')}${String(t.getDate()).padStart(2,'0')}-${String(Math.floor(1000+Math.random()*9000))}`;S.refAt=t;}
+    openReport(); };
+}
+
+/* ---------- รายงาน (A4) ---------- */
+function qrSvg(text,size=96){
+  const q=new QRLib.QRCode(-1,QRLib.ECL.M); q.addData(text); q.make(); const n=q.getModuleCount(); let d='';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(q.isDark(r,c)) d+=`M${c+4} ${r+4}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${n+8} ${n+8}" width="${size}" height="${size}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+const esc=v=>String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const thDate=d=>d.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+function reportHtml(){
+  const R=assess(), B=S.billData, t=(TYPES[S.group]||[]).find(x=>x[0]===S.type);
+  const typeName=S.type==='other'?(S.otherText||'อื่น ๆ'):(t?t[1]:'-');
+  const dash=v=>v===''||v==null?'-':v;
+  const meterShort=B?'TOU 22–33 kV':({unsure:'ไม่แน่ใจ',normal:'อัตราปกติ',tou:'TOU',tod:'TOD'}[S.meter]);
+  const goals=GOALS.filter(x=>S.goals.has(x.id)).map(x=>x.t).join(', ')||'-';
+  const lbl=loadLabels();
+  const mB=R.offBill*S.alloc.off/100+R.onBill*S.alloc.on/100;
+  const ee=R.recs.find(r=>r.id==='ee');
+  const months=[Math.ceil(EE_PRICE/ee.save[1]),Math.ceil(EE_PRICE/ee.save[0])];
+  const addr=S.cust.addr.trim();
+  const fromBill=B&&S.billAddr&&addr===S.billAddr;
+  const alts=R.recs.filter(r=>r.id!=='ee').map(r=>r.en+(S.interest.has(r.id)?' (ลูกค้าสนใจ)':''));
+  const work=[S.days?S.days+' วัน/สัปดาห์':'',S.hours?S.hours+' ชม./วัน':''].filter(Boolean).join(' · ')||'-';
+  const cell=(l,v,c='')=>`<div class="${c}"><label>${l}</label><span>${v}</span></div>`;
+  const usageFields = B ? [
+      cell('ประเภทมิเตอร์',meterShort),
+      cell('หน่วยไฟ กลางวัน / กลางคืน',`${pct(R.d)} / ${pct(1-R.d)}`),
+      cell('ไฟเครื่องจักร (คืน / วัน)',`${S.alloc.off}% / ${S.alloc.on}%`),
+      cell('ค่าไฟของเครื่องจักร',`${fmt(mB)} บาท/เดือน`)
+    ] : [
+      cell('ค่าไฟฟ้าเฉลี่ย',`${fmt(R.bill)} บาท/เดือน`),
+      cell('หน่วยไฟโดยประมาณ',`${fmt(R.kwh)} หน่วย/เดือน`),
+      cell('ประเภทมิเตอร์',meterShort),
+      cell('ค่าไฟ กลางวัน / กลางคืน',`${pct(R.d)} / ${pct(1-R.d)}`),
+      cell('ไฟเครื่องจักร (คืน / วัน)',`${S.alloc.off}% / ${S.alloc.on}%`),
+      cell('ค่าไฟของเครื่องจักร',`${fmt(mB)} บาท/เดือน`),
+      cell('Demand','-'),
+      cell('แหล่งข้อมูล','ลูกค้ากรอกเอง')
+    ];
+  return `<div id="paper">
+  <header class="hd">
+    <div class="org"><div class="mark">${ic('bolt',17,2.2)}</div><div><b>โครงการประเมินพลังงานสำหรับธุรกิจ SME</b><span>ร่วมกับ การไฟฟ้าฝ่ายผลิตแห่งประเทศไทย (กฟผ.)</span></div></div>
+    <div class="ref"><div>เลขที่คำขอ<b>${S.ref}</b>วันที่ ${thDate(S.refAt)}</div>${qrSvg(S.ref)}</div>
+  </header>
+  <hr class="rule"><hr class="rule2">
+  <div class="rp-title"><h1>แบบรายงานผลการประเมินพลังงานเบื้องต้น</h1><p>และคำขอรับการตรวจวัดพลังงาน</p></div>
+
+  <section><h2>1. ข้อมูลผู้ขอรับบริการ</h2>
+    <div class="fg c4">
+      ${cell('ชื่อกิจการ / บริษัท',esc(S.cust.biz),'s2')}${cell('ประเภทธุรกิจ',esc(typeName))}${cell('ชื่อผู้ติดต่อ',esc(S.cust.name))}
+      ${cell('โทรศัพท์',esc(S.cust.phone))}${cell('อีเมล',esc(S.cust.email))}
+      ${cell('สถานที่ใช้ไฟฟ้า'+(fromBill?' <i>(จากบิลค่าไฟฟ้า)</i>':''),addr?esc(addr):'จ.'+esc(S.cust.prov),'s2')}
+    </div>
+  </section>
+
+  <section><h2>2. แพ็กเกจที่แนะนำ</h2>
+    <div class="rp-pkg">
+      <div class="rp-pkg-h"><div><b>Energy Efficiency</b><span>แพ็กเกจเพิ่มประสิทธิภาพการใช้พลังงาน</span></div>${S.interest.has('ee')?'<em>☑ ลูกค้าสนใจ</em>':'<em class="no">☐ ลูกค้ายังไม่ได้เลือก</em>'}</div>
+      <div class="rp-stats">
+        <div><label>ประหยัดค่าไฟได้ประมาณ</label><b>${fmt(ee.save[0])} – ${fmt(ee.save[1])}<small>บาท/เดือน</small></b></div>
+        <div><label>เงินลงทุน (แพ็กเกจรวม)</label><b>${fmt(EE_PRICE)}<small>บาท</small></b></div>
+        <div><label>ระยะเวลาคืนทุน</label><b>${months[0]===months[1]?months[0]:months[0]+' – '+months[1]}<small>เดือน</small></b></div>
+      </div>
+      <div class="incl"><b>สิ่งที่ได้รับ</b>${EE_PKG.map(x=>`<span>${x[1]}</span>`).join('')}</div>
+    </div>
+    <div class="alt"><b>ทางเลือกเพิ่มเติม</b><span>${alts.join(' และ ')} — ยังไม่มีข้อมูลโดยละเอียด ต้องสำรวจหน้างานก่อนประเมิน</span></div>
+  </section>
+
+  <section><h2>3. ข้อมูลการใช้ไฟฟ้า <small>${B?`จากบิลค่าไฟฟ้า ${B.months.length} เดือน`:'ลูกค้ากรอกข้อมูลเอง (ไม่ได้แนบบิล)'}</small></h2>
+    <div class="usage">
+      <div class="fg c4">
+        ${usageFields.join('')}
+        ${cell('เครื่องจักร / อุปกรณ์หลัก',lbl.length?esc(lbl.join(', ')):'-','s2')}${cell('วันและเวลาทำงาน',work)}${cell('พื้นที่หลังคา',S.roof?fmt(+S.roof)+' ตร.ม.':'-')}
+        ${cell('ปัญหาที่ต้องการแก้ไข',goals,'s4')}
+      </div>
+      ${B?`<table class="bills"><thead><tr><th>เดือน</th><th>On-Peak (หน่วย)</th><th>Off-Peak (หน่วย)</th><th>Demand (kW)</th><th>ค่าไฟฟ้า (บาท)</th></tr></thead><tbody>
+        ${B.months.map(m=>`<tr><td>${m[0]}</td><td>${fmt(m[1])}</td><td>${fmt(m[2])}</td><td>${m[3].toFixed(1)}</td><td>${fmt(m[4])}</td></tr>`).join('')}
+        <tr class="avg"><td>เฉลี่ย</td><td>${fmt(B.onK)}</td><td>${fmt(B.offK)}</td><td>${B.kw.toFixed(1)}</td><td>${fmt(B.total)}</td></tr></tbody></table>`:''}
+    </div>
+  </section>
+
+  <section><h2>4. เจ้าหน้าที่ผู้รับเรื่อง</h2>
+    <div class="fg c5">${cell('ชื่อ-นามสกุล',esc(S.staff.name))}${cell('หน่วยงาน',esc(S.staff.unit),'s2')}${cell('โทรศัพท์',esc(dash(S.staff.phone.trim())))}${cell('อีเมล',esc(S.staff.email))}</div>
+    <div class="sign-row">
+      <div class="rp-note"><label>ความคิดเห็นของเจ้าหน้าที่</label>${S.staff.note.trim()?esc(S.staff.note).replace(/\n/g,'<br>'):'<span class="ln"></span><span class="ln"></span>'}</div>
+      <div class="sign"><div class="ln"></div>( ${esc(S.staff.name)} )<br><small>ผู้รับเรื่อง · ${thDate(S.refAt)}</small></div>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+  <footer class="ft">หมายเหตุ: ผลการประเมินเป็นการประมาณการเบื้องต้นจากข้อมูลที่ลูกค้าให้ไว้ ตัวเลขจริงขึ้นกับการตรวจวัดหน้างาน · ลูกค้ายินยอมให้ใช้ข้อมูลตาม พ.ร.บ.คุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562<span>หน้า 1/1</span></footer>
+  </div>`;
+}
+/* ถ้าเนื้อหายาวเกิน 1 หน้า ลดขนาดตัวอักษรทีละน้อย (ต่ำสุด 9pt) */
+function shrinkToFit(){ const p=$('paper'); if(!p) return; let fs=10.5; p.style.setProperty('--fs',fs+'pt'); const z=p.style.zoom; p.style.zoom=1;
+  while(p.scrollHeight>p.clientHeight+1 && fs>9){ fs-=.25; p.style.setProperty('--fs',fs+'pt'); } p.style.zoom=z; }
+function fitPaper(){ const p=$('paper'); if(!p) return; const w=$('report').clientWidth-24, s=Math.min(1,w/794); p.style.zoom=s; }
+function openReport(){
+  let r=$('report'); if(!r){ r=document.createElement('div'); r.id='report'; document.body.appendChild(r); }
+  r.innerHTML=`<div class="rp-bar"><button id="rpBack">${ic('chev',18,2.4)} แก้ไขข้อมูล</button><span>รายงานพร้อมพิมพ์</span><button id="rpPrint" class="pri">${ic('down',18,2.2)} พิมพ์ / PDF</button></div>${reportHtml()}`;
+  document.body.classList.add('rp-open'); r.scrollTop=0; shrinkToFit(); fitPaper(); if(document.fonts) document.fonts.ready.then(()=>{shrinkToFit();fitPaper();});
+  $('rpBack').onclick=()=>{document.body.classList.remove('rp-open');};
+  $('rpPrint').onclick=()=>window.print();
+}
+window.addEventListener('resize',fitPaper);
+
+function closeSheet(){ $('scrim').classList.remove('show'); $('sheet').classList.remove('show'); }
+$('scrim').onclick=closeSheet;
+
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2200);}
+$('back').onclick=()=>{ if(S.step>1) go(S.step===5?4:S.step-1); };
+render();
+</script>
+</body>
+</html>
